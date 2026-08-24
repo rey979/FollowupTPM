@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: tpm-followup-app
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tpm-postgres-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+
+databases:
+  - name: tpm-postgres-db
+    databaseName: tpm_database
+    user: tpm_user
