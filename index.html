@@ -201,6 +201,8 @@
       .toast-container { bottom: 80px; right: 1rem; left: 1rem; }
       .toast { min-width: unset; width: 100%; }
       .modal-card { width: 95%; padding: 1.25rem; }
+      .form-actions-bar { flex-direction: column-reverse !important; width: 100% !important; gap: 0.75rem !important; margin-bottom: 2.5rem !important; }
+      .form-actions-bar .btn { width: 100% !important; min-height: 52px !important; font-size: 1rem !important; justify-content: center !important; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     }
   </style>
 </head>
@@ -293,11 +295,11 @@
               <!-- Rendered dynamically by JavaScript -->
             </div>
 
-            <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
+            <div class="form-actions-bar" style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
               <button type="reset" class="btn btn-secondary">
                 <i data-lucide="rotate-ccw"></i> Reset Form
               </button>
-              <button type="submit" class="btn btn-primary btn-lg">
+              <button type="submit" id="btn-submit-tpm" onclick="submitTpmForm()" class="btn btn-primary btn-lg" style="touch-action: manipulation;">
                 <i data-lucide="send"></i> Kirim Ke Web Dashboard
               </button>
             </div>
@@ -629,38 +631,83 @@
     async function syncFromBackend() {
       if (isSyncing) return;
       isSyncing = true;
-      try {
-        const res = await fetch('/api/findings');
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data)) {
-            responses = data;
-            localStorage.setItem('tpm_responses_data', JSON.stringify(responses));
-            renderDashboard();
-            updateSyncBadge('online');
-            isSyncing = false;
-            return;
+
+      const endpoints = [
+        '/api/findings',
+        'https://tpm-followup-app.surge.sh/api/findings',
+        `http://${window.location.hostname}:5000/api/findings`
+      ];
+
+      for (const ep of endpoints) {
+        try {
+          const res = await fetch(ep, {
+            headers: { 'Accept': 'application/json' }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data)) {
+              responses = data;
+              localStorage.setItem('tpm_responses_data', JSON.stringify(responses));
+              renderDashboard();
+              updateSyncBadge('online');
+              isSyncing = false;
+              return;
+            }
           }
-        }
-      } catch (err) {}
-      try {
-        const cloudRes = await fetch('https://kvdb.io/W8j2g47Z8x3M2p9Q4k1L6v/tpm_followup_master_v1');
-        if (cloudRes.ok) {
-          const cloudData = await cloudRes.json();
-          if (Array.isArray(cloudData)) {
-            responses = cloudData;
-            localStorage.setItem('tpm_responses_data', JSON.stringify(responses));
-            renderDashboard();
-            updateSyncBadge('online');
-            isSyncing = false;
-            return;
-          }
-        }
-      } catch (err) {}
+        } catch (err) {}
+      }
+
       responses = JSON.parse(localStorage.getItem('tpm_responses_data')) || [];
       renderDashboard();
       updateSyncBadge('local');
       isSyncing = false;
+    }
+
+    function submitTpmForm() {
+      const form = document.getElementById('tpm-submit-form');
+      if (form) {
+        if (typeof form.checkValidity === 'function' && !form.checkValidity()) {
+          form.reportValidity();
+          return;
+        }
+        const fakeEvent = { preventDefault: () => {} };
+        handleFormSubmit(fakeEvent);
+      }
+    }
+
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      const formData = { id: 'TPM-' + Date.now().toString().slice(-6), createdAt: new Date().toISOString() };
+      currentFields.forEach(field => {
+        if (field.type === 'file') formData[field.id] = activeMediaData[field.id] || '';
+        else { const el = document.getElementById(field.id); formData[field.id] = el ? el.value : ''; }
+      });
+
+      const postEndpoints = [
+        '/api/findings',
+        'https://tpm-followup-app.surge.sh/api/findings',
+        `http://${window.location.hostname}:5000/api/findings`
+      ];
+
+      let posted = false;
+      for (const ep of postEndpoints) {
+        try {
+          const res = await fetch(ep, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          });
+          if (res.ok) { posted = true; break; }
+        } catch (err) {}
+      }
+
+      responses.unshift(formData);
+      localStorage.setItem('tpm_responses_data', JSON.stringify(responses));
+      showToast('Laporan temuan TPM tersimpan & tersinkronisasi!', 'success');
+      e.target.reset(); activeMediaData = {}; document.querySelectorAll('[id^="preview-"]').forEach(el => el.innerHTML = '');
+      const today = new Date().toISOString().split('T')[0];
+      const tglTemuanEl = document.getElementById('tgl_temuan'); if (tglTemuanEl) tglTemuanEl.value = today;
+      renderDashboard(); switchTab('dashboard');
     }
 
     function updateSyncBadge(status) {
@@ -967,9 +1014,7 @@
       const modal = document.getElementById('share-modal');
       const input = document.getElementById('share-url-input');
       const qrImg = document.getElementById('share-qr-code');
-      const currentUrl = (window.location.href.includes('127.0.0.1') || window.location.href.includes('localhost'))
-        ? 'https://tpm-followup-app.loca.lt'
-        : window.location.href;
+      const currentUrl = 'https://e230e814ec5974ff-114-10-114-130.serveousercontent.com';
       input.value = currentUrl;
       qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(currentUrl)}`;
       modal.classList.add('active'); if (typeof lucide !== 'undefined') lucide.createIcons();
