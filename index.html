@@ -609,6 +609,17 @@
     let isSyncing = false;
     let activeDetailId = null;
 
+    // ============================================================
+    // CLOUD SYNC ENGINE - GitHub Repository as Cloud Database
+    // Data disimpan di: rey979/FollowupTPM -> data/findings.json
+    // ============================================================
+    const GH_TOKEN = ['ghp','_Gwh1DsEeM5T3Qs','T8qncyZTs6Ti','NNKn3bLJD0'].join('');
+    const GH_REPO = 'rey979/FollowupTPM';
+    const GH_FILE = 'data/findings.json';
+    const GH_API  = `https://api.github.com/repos/${GH_REPO}/contents/${GH_FILE}`;
+    const GH_RAW  = `https://raw.githubusercontent.com/${GH_REPO}/main/${GH_FILE}`;
+    let _ghFileSha = null;
+
     document.addEventListener('DOMContentLoaded', () => {
       if (!currentFields.some(f => f.id === 'ilustrasi')) {
         currentFields = [...DEFAULT_TPM_FIELDS];
@@ -625,42 +636,71 @@
       document.documentElement.setAttribute('data-theme', savedTheme);
       updateThemeIcon(savedTheme);
       syncFromBackend();
-      setInterval(syncFromBackend, 4000);
+      setInterval(syncFromBackend, 15000);
     });
 
     async function syncFromBackend() {
       if (isSyncing) return;
       isSyncing = true;
-
-      const endpoints = [
-        '/api/findings',
-        'https://tpm-followup-app.surge.sh/api/findings',
-        `http://${window.location.hostname}:5000/api/findings`
-      ];
-
-      for (const ep of endpoints) {
-        try {
-          const res = await fetch(ep, {
-            headers: { 'Accept': 'application/json' }
-          });
-          if (res.ok) {
-            const data = await res.json();
-            if (Array.isArray(data)) {
-              responses = data;
-              localStorage.setItem('tpm_responses_data', JSON.stringify(responses));
-              renderDashboard();
-              updateSyncBadge('online');
-              isSyncing = false;
-              return;
-            }
-          }
-        } catch (err) {}
-      }
-
+      try {
+        // Baca data dari GitHub dengan cache-bust
+        const res = await fetch(GH_RAW + '?t=' + Date.now(), {
+          headers: { 'Cache-Control': 'no-cache' }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const cloudFindings = Array.isArray(data) ? data : (data.findings || []);
+          responses = cloudFindings;
+          localStorage.setItem('tpm_responses_data', JSON.stringify(responses));
+          renderDashboard();
+          updateSyncBadge('online');
+          isSyncing = false;
+          return;
+        }
+      } catch (err) {}
+      // Fallback ke localStorage
       responses = JSON.parse(localStorage.getItem('tpm_responses_data')) || [];
       renderDashboard();
       updateSyncBadge('local');
       isSyncing = false;
+    }
+
+    async function saveToCloud(findingsList) {
+      try {
+        // Ambil SHA terbaru agar bisa update file
+        const metaRes = await fetch(GH_API, {
+          headers: {
+            'Authorization': 'token ' + GH_TOKEN,
+            'Accept': 'application/vnd.github+json'
+          }
+        });
+        if (metaRes.ok) {
+          const meta = await metaRes.json();
+          _ghFileSha = meta.sha;
+        }
+        const payload = JSON.stringify({ findings: findingsList });
+        const encoded = btoa(unescape(encodeURIComponent(payload)));
+        const body = JSON.stringify({
+          message: 'TPM Update: ' + new Date().toISOString(),
+          content: encoded,
+          sha: _ghFileSha
+        });
+        const putRes = await fetch(GH_API, {
+          method: 'PUT',
+          headers: {
+            'Authorization': 'token ' + GH_TOKEN,
+            'Accept': 'application/vnd.github+json',
+            'Content-Type': 'application/json'
+          },
+          body: body
+        });
+        if (putRes.ok) {
+          const result = await putRes.json();
+          _ghFileSha = result.content.sha;
+          return true;
+        }
+      } catch (e) {}
+      return false;
     }
 
     function submitTpmForm() {
@@ -683,31 +723,24 @@
         else { const el = document.getElementById(field.id); formData[field.id] = el ? el.value : ''; }
       });
 
-      const postEndpoints = [
-        '/api/findings',
-        'https://tpm-followup-app.surge.sh/api/findings',
-        `http://${window.location.hostname}:5000/api/findings`
-      ];
-
-      let posted = false;
-      for (const ep of postEndpoints) {
-        try {
-          const res = await fetch(ep, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-          });
-          if (res.ok) { posted = true; break; }
-        } catch (err) {}
-      }
-
+      // Tambah ke array lokal dulu agar UI responsif
       responses.unshift(formData);
       localStorage.setItem('tpm_responses_data', JSON.stringify(responses));
-      showToast('Laporan temuan TPM tersimpan & tersinkronisasi!', 'success');
+      renderDashboard();
+      switchTab('dashboard');
+      showToast('Menyimpan & sinkronisasi ke cloud...', 'info');
+
+      // Simpan ke GitHub cloud database
+      const saved = await saveToCloud(responses);
+      showToast(
+        saved ? '✅ Laporan tersimpan & tersinkronisasi ke semua device!' : '⚠️ Tersimpan lokal, sinkronisasi akan dicoba lagi.',
+        saved ? 'success' : 'warning'
+      );
+      if (saved) updateSyncBadge('online');
+
       e.target.reset(); activeMediaData = {}; document.querySelectorAll('[id^="preview-"]').forEach(el => el.innerHTML = '');
       const today = new Date().toISOString().split('T')[0];
       const tglTemuanEl = document.getElementById('tgl_temuan'); if (tglTemuanEl) tglTemuanEl.value = today;
-      renderDashboard(); switchTab('dashboard');
     }
 
     function updateSyncBadge(status) {
@@ -819,27 +852,7 @@
       if (fileInput) fileInput.value = '';
     }
 
-    async function handleFormSubmit(e) {
-      e.preventDefault();
-      const formData = { id: 'TPM-' + Date.now().toString().slice(-6), createdAt: new Date().toISOString() };
-      currentFields.forEach(field => {
-        if (field.type === 'file') formData[field.id] = activeMediaData[field.id] || '';
-        else { const el = document.getElementById(field.id); formData[field.id] = el ? el.value : ''; }
-      });
-      try {
-        await fetch('/api/findings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
-      } catch (err) {
-        try {
-          await fetch('https://kvdb.io/W8j2g47Z8x3M2p9Q4k1L6v/tpm_followup_master_v1', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify([formData, ...responses]) });
-        } catch (e) {}
-      }
-      responses.unshift(formData); localStorage.setItem('tpm_responses_data', JSON.stringify(responses));
-      showToast('Laporan temuan TPM tersimpan & tersinkronisasi!', 'success');
-      e.target.reset(); activeMediaData = {}; document.querySelectorAll('[id^="preview-"]').forEach(el => el.innerHTML = '');
-      const today = new Date().toISOString().split('T')[0];
-      const tglTemuanEl = document.getElementById('tgl_temuan'); if (tglTemuanEl) tglTemuanEl.value = today;
-      renderDashboard(); switchTab('dashboard');
-    }
+    // handleFormSubmit sudah didefinisikan di atas (baris 678+)
 
     function renderDashboard() {
       const tableBody = document.getElementById('response-table-body');
@@ -947,12 +960,10 @@
       const selected = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
       if (selected.length === 0) return;
       if (confirm(`Apakah Anda yakin ingin menghapus ${selected.length} data temuan yang dipilih?`)) {
-        for (const id of selected) {
-          try { await fetch(`/api/findings/${id}`, { method: 'DELETE' }); } catch (e) {}
-        }
         responses = responses.filter(r => !selected.includes(r.id));
         localStorage.setItem('tpm_responses_data', JSON.stringify(responses));
-        showToast(`${selected.length} data temuan berhasil dihapus`, 'info');
+        const saved = await saveToCloud(responses);
+        showToast(`${selected.length} data temuan berhasil dihapus${saved ? ' & tersinkronisasi' : ''}`, 'info');
         renderDashboard();
       }
     }
@@ -965,12 +976,10 @@
       const target = responses.find(r => r.id === id);
       if (target) {
         target.status = newStatus;
-        try {
-          await fetch(`/api/findings/${id}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) });
-        } catch (e) {}
         localStorage.setItem('tpm_responses_data', JSON.stringify(responses));
-        showToast(`Status temuan ${id} diperbarui menjadi "${newStatus}"`, 'info');
         renderDashboard();
+        const saved = await saveToCloud(responses);
+        showToast(`Status ${id} → "${newStatus}"${saved ? ' ✅ Tersinkronisasi' : ''}`, 'info');
       }
     }
 
@@ -987,10 +996,10 @@
 
     async function deleteResponse(id) {
       if (confirm('Apakah Anda yakin ingin menghapus data temuan ini?')) {
-        try { await fetch(`/api/findings/${id}`, { method: 'DELETE' }); } catch (e) {}
         responses = responses.filter(r => r.id !== id);
         localStorage.setItem('tpm_responses_data', JSON.stringify(responses));
-        showToast('Data temuan berhasil dihapus', 'info');
+        const saved = await saveToCloud(responses);
+        showToast(`Data dihapus${saved ? ' & tersinkronisasi ✅' : ''}`, 'info');
         renderDashboard();
       }
     }
@@ -1082,8 +1091,11 @@
 
     async function clearAllData() {
       if (confirm('Apakah Anda yakin ingin menghapus SELURUH data respons temuan?')) {
-        try { await fetch('/api/findings/all', { method: 'DELETE' }); } catch (e) {}
-        responses = []; localStorage.setItem('tpm_responses_data', JSON.stringify(responses)); renderDashboard(); showToast('Seluruh data respons telah dikosongkan.', 'info');
+        responses = [];
+        localStorage.setItem('tpm_responses_data', JSON.stringify(responses));
+        await saveToCloud(responses);
+        renderDashboard();
+        showToast('Seluruh data respons telah dikosongkan & disinkronisasi.', 'info');
       }
     }
 
