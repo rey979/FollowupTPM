@@ -10,10 +10,15 @@ import os
 # LOAD ENVIRONMENT
 # =========================
 
-env_path = Path(__file__).parent / ".env"
+BASE_DIR = Path(__file__).resolve().parent
+env_path = BASE_DIR / ".env"
 load_dotenv(dotenv_path=env_path)
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    template_folder=str(BASE_DIR / "templates"),
+    static_folder=str(BASE_DIR / "static")
+)
 CORS(app)  # Enable Cross-Origin Resource Sharing for all devices & mobile networks
 
 # =========================
@@ -31,7 +36,7 @@ else:
     if os.getenv("VERCEL") or os.environ.get("VERCEL_ENV"):
         db_url = "sqlite:////tmp/tpm_database.db"
     else:
-        db_url = "sqlite:///tpm_database.db"
+        db_url = "sqlite:///" + str(BASE_DIR / "tpm_database.db")
 
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
