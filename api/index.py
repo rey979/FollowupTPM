@@ -11,13 +11,11 @@ if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
 try:
-    from app import app
-except ImportError:
-    try:
-        from Canva.app import app
-    except ImportError:
-        import app as app_module
-        app = app_module.app
+    from app import app, db
+    with app.app_context():
+        db.create_all()
+except Exception as err:
+    print("Vercel DB Init Notice:", err)
 
 # Export app for Vercel Serverless Function
 app = app
