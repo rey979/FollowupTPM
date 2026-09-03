@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FormCraft TPM - Follow Up Temuan TPM & Cloud Dashboard</title>
+  <meta name="description" content="Aplikasi Form Follow Up Temuan TPM Interaktif terintegrasi dengan Real-time Database Synchronization">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Embedded Stylesheet (Self-Contained for tiiny.site & static web hosting) -->
+  <style>
+    /* ==========================================================================
+       FormCraft TPM - Complete Embedded Stylesheet
+       ========================================================================== */
+    :root {
+      --bg-main: #f4f6fb;
+      --bg-card: rgba(255, 255, 255, 0.85);
+      --bg-card-solid: #ffffff;
+      --bg-glass: rgba(255, 255, 255, 0.7);
+      --bg-sidebar: #ffffff;
+      --bg-input: #f8fafc;
+      --border-color: rgba(226, 232, 240, 0.8);
+      --border-focus: #3b82f6;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-light: #94a3b8;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --success: #10b981;
+      --success-light: #ecfdf5;
+      --warning: #f59e0b;
+      --warning-light: #fffbeb;
+      --danger: #ef4444;
+      --danger-light: #fef2f2;
+      --info: #06b6d4;
+      --info-light: #ecfeff;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+      --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      --shadow-glow: 0 0 20px rgba(37, 99, 235, 0.15);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --radius-full: 9999px;
+      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    [data-theme="dark"] {
+      --bg-main: #0b0f19;
+      --bg-card: rgba(18, 24, 38, 0.8);
+      --bg-card-solid: #121826;
+      --bg-glass: rgba(18, 24, 38, 0.75);
+      --bg-sidebar: #121826;
+      --bg-input: #1a2234;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-focus: #60a5fa;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-light: #64748b;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --primary-light: rgba(59, 130, 246, 0.15);
+      --success: #10b981;
+      --success-light: rgba(16, 185, 129, 0.15);
+      --warning: #f59e0b;
+      --warning-light: rgba(245, 158, 11, 0.15);
+      --danger: #f87171;
+      --danger-light: rgba(239, 68, 68, 0.15);
+      --info: #22d3ee;
+      --info-light: rgba(6, 182, 212, 0.15);
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+      --shadow-glow: 0 0 25px rgba(59, 130, 246, 0.25);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      line-height: 1.5;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      overflow-x: hidden;
+    }
+    h1, h2, h3, h4, h5, h6 { font-family: 'Outfit', 'Inter', sans-serif; font-weight: 700; letter-spacing: -0.02em; }
+    button, input, select, textarea { font-family: inherit; }
+    .app-container { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 280px;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-color);
+      display: flex; flex-direction: column;
+      padding: 1.5rem; position: fixed; height: 100vh; z-index: 100;
+      backdrop-filter: blur(12px); transition: var(--transition);
+    }
+    .brand { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem; }
+    .brand-icon {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center;
+      color: white; box-shadow: var(--shadow-glow);
+    }
+    .brand-text h2 { font-size: 1.25rem; background: linear-gradient(135deg, var(--text-main), var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .brand-text span { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+    .nav-menu { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
+    .nav-item {
+      display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem 1rem;
+      border-radius: var(--radius-md); color: var(--text-muted); font-weight: 500; cursor: pointer;
+      border: none; background: transparent; width: 100%; text-align: left; transition: var(--transition); font-size: 0.95rem;
+    }
+    .nav-item:hover { background: var(--primary-light); color: var(--primary); }
+    .nav-item.active { background: var(--primary); color: white; box-shadow: var(--shadow-glow); }
+    .badge-count { margin-left: auto; background: rgba(255, 255, 255, 0.25); color: inherit; padding: 0.15rem 0.6rem; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 600; }
+    .sidebar-footer { padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.75rem; }
+    .theme-toggle { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.85rem; background: var(--bg-input); border-radius: var(--radius-md); border: 1px solid var(--border-color); cursor: pointer; }
+    .main-content { margin-left: 280px; flex: 1; padding: 2rem 2.5rem; max-width: 1400px; }
+    .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .header-title h1 { font-size: 1.85rem; color: var(--text-main); }
+    .header-title p { color: var(--text-muted); font-size: 0.95rem; margin-top: 0.25rem; }
+    .header-actions { display: flex; gap: 0.75rem; align-items: center; }
+    .card { background: var(--bg-card); backdrop-filter: blur(16px); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-md); transition: var(--transition); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.7rem 1.3rem; border-radius: var(--radius-md); font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none; transition: var(--transition); }
+    .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn-secondary { background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border-color); }
+    .btn-secondary:hover { background: var(--border-color); }
+    .btn-danger { background: var(--danger-light); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
+    .btn-sm { padding: 0.45rem 0.85rem; font-size: 0.825rem; border-radius: var(--radius-sm); }
+    .form-group { margin-bottom: 1.5rem; }
+    .form-label { display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-main); margin-bottom: 0.5rem; }
+    .form-label .required { color: var(--danger); margin-left: 0.25rem; }
+    .form-input, .form-select, .form-textarea { width: 100%; padding: 0.8rem 1rem; background: var(--bg-input); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-main); font-size: 0.95rem; transition: var(--transition); }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--border-focus); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15); background: var(--bg-card-solid); }
+    .form-textarea { resize: vertical; min-height: 110px; }
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2rem; }
+    .metric-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: 1.25rem; }
+    .metric-icon { width: 52px; height: 52px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: white; }
+    .metric-icon.blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+    .metric-icon.red { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+    .metric-icon.yellow { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .metric-icon.green { background: linear-gradient(135deg, #10b981, #047857); }
+    .metric-info span { font-size: 0.825rem; color: var(--text-muted); font-weight: 500; }
+    .metric-info h3 { font-size: 1.6rem; color: var(--text-main); margin-top: 0.1rem; }
+    .table-container { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border-color); }
+    .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+    .data-table th { background: var(--bg-input); padding: 1rem 1.25rem; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+    .data-table td { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color); color: var(--text-main); vertical-align: middle; }
+    .badge { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.75rem; border-radius: var(--radius-full); font-size: 0.775rem; font-weight: 600; }
+    .badge-open { background: var(--danger-light); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-onprogress { background: var(--warning-light); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-closed { background: var(--success-light); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .builder-layout { display: grid; grid-template-columns: 280px 1fr 300px; gap: 1.5rem; }
+    .elements-toolbox, .field-inspector { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem; height: fit-content; }
+    .toolbox-title { font-size: 1rem; margin-bottom: 1rem; color: var(--text-main); padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); }
+    .tool-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 0.9rem; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: 0.6rem; cursor: pointer; font-size: 0.875rem; font-weight: 500; }
+    .canvas-area { background: var(--bg-card); border: 2px dashed var(--border-color); border-radius: var(--radius-lg); padding: 2rem; min-height: 500px; }
+    .canvas-field { position: relative; background: var(--bg-card-solid); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1rem; }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: var(--transition); }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    .modal-card { background: var(--bg-card-solid); border: 1px solid var(--border-color); border-radius: var(--radius-lg); width: 90%; max-width: 650px; max-height: 90vh; overflow-y: auto; padding: 2rem; box-shadow: var(--shadow-lg); transform: translateY(20px); transition: var(--transition); }
+    .modal-overlay.active .modal-card { transform: translateY(0); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); }
+    .toast-container { position: fixed; bottom: 2rem; right: 2rem; display: flex; flex-direction: column; gap: 0.75rem; z-index: 1100; }
+    .toast { background: var(--bg-card-solid); border: 1px solid var(--border-color); border-left: 4px solid var(--primary); border-radius: var(--radius-md); padding: 1rem 1.25rem; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 0.85rem; min-width: 300px; }
+    .mobile-nav-bar { display: none; }
+    .mobile-card-list { display: none; }
+    @media (max-width: 1024px) { .builder-layout { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main-content { margin-left: 0; padding: 1.25rem 1rem 90px 1rem; max-width: 100%; }
+      .top-header { flex-direction: column; align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem; background: var(--bg-card); padding: 1rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); }
+      .header-title h1 { font-size: 1.35rem; }
+      .header-title p { font-size: 0.825rem; }
+      .header-actions { width: 100%; justify-content: space-between; flex-wrap: wrap; }
+      .header-actions .btn { flex: 1; font-size: 0.8rem; padding: 0.6rem 0.5rem; }
+      .metrics-grid { grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1.25rem; }
+      .metric-card { padding: 1rem; gap: 0.75rem; flex-direction: column; align-items: flex-start; }
+      .metric-icon { width: 40px; height: 40px; }
+      .metric-info h3 { font-size: 1.35rem; }
+      .mobile-nav-bar { display: flex; position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background: var(--bg-sidebar); border-top: 1px solid var(--border-color); box-shadow: 0 -4px 20px rgba(0,0,0,0.1); z-index: 1000; backdrop-filter: blur(12px); justify-content: space-around; align-items: center; padding: 0 0.5rem; }
+      .mobile-nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.25rem; background: none; border: none; color: var(--text-muted); font-size: 0.7rem; font-weight: 600; cursor: pointer; flex: 1; height: 100%; }
+      .mobile-nav-item.active { color: var(--primary); }
+      .table-container { display: none; }
+      .mobile-card-list { display: flex; flex-direction: column; gap: 1rem; }
+      .mobile-response-card { background: var(--bg-card-solid); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.1rem; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 0.75rem; }
+      .mobile-card-header { display: flex; justify-content: space-between; align-items: center; }
+      .mobile-card-title { font-weight: 700; font-size: 1rem; color: var(--text-main); }
+      .mobile-card-detail { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
+      .form-input, .form-select, .form-textarea { font-size: 16px !important; }
+      .card { padding: 1.25rem; }
+      .toast-container { bottom: 80px; right: 1rem; left: 1rem; }
+      .toast { min-width: unset; width: 100%; }
+      .modal-card { width: 95%; padding: 1.25rem; }
+      .form-actions-bar { flex-direction: column-reverse !important; width: 100% !important; gap: 0.75rem !important; margin-bottom: 2.5rem !important; }
+      .form-actions-bar .btn { width: 100% !important; min-height: 52px !important; font-size: 1rem !important; justify-content: center !important; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">
+          <i data-lucide="wrench"></i>
+        </div>
+        <div class="brand-text">
+          <h2>TPM FollowUp</h2>
+          <span>Dashboard & Form</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <button class="nav-item active" onclick="switchTab('filler')" id="nav-filler">
+          <i data-lucide="file-text"></i>
+          <span>Isi Form Temuan</span>
+        </button>
+
+        <button class="nav-item" onclick="switchTab('dashboard')" id="nav-dashboard">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Web Dashboard</span>
+          <span class="badge-count" id="badge-total-count">0</span>
+        </button>
+
+        <button class="nav-item" onclick="switchTab('builder')" id="nav-builder">
+          <i data-lucide="sliders"></i>
+          <span>Form Builder Studio</span>
+        </button>
+
+        <button class="nav-item" onclick="switchTab('settings')" id="nav-settings">
+          <i data-lucide="settings"></i>
+          <span>Pengaturan & Demo</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="theme-toggle" onclick="toggleTheme()">
+          <span>Mode Tampilan</span>
+          <i data-lucide="moon" id="theme-icon"></i>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Body -->
+    <main class="main-content">
+      
+      <!-- TOP HEADER -->
+      <header class="top-header">
+        <div class="header-title">
+          <h1 id="page-title">Form Follow Up Temuan TPM</h1>
+          <p id="page-subtitle">Pencatatan abnormality mesin & tindakan perbaikan cepat</p>
+        </div>
+
+        <div class="header-actions">
+          <span id="cloud-sync-badge" class="badge badge-closed"><i data-lucide="cloud"></i> 🟢 Database Synced</span>
+          <button class="btn btn-secondary btn-sm" onclick="syncFromBackend()" id="btn-sync-cloud" title="Sync Real-time Database Data">
+            <i data-lucide="refresh-cw"></i> Sync Data
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="openShareModal()">
+            <i data-lucide="share-2"></i> Bagikan Form
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="switchTab('dashboard')">
+            <i data-lucide="eye"></i> Lihat Dashboard
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="loadSampleData()">
+            <i data-lucide="sparkles"></i> Load Data Sample
+          </button>
+        </div>
+      </header>
+
+      <!-- TAB 1: FORM FILLER / ISIAN FORM -->
+      <section id="tab-filler" class="tab-page">
+        <div class="card" style="max-width: 850px; margin: 0 auto;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+            <div>
+              <h2 style="font-size: 1.4rem; color: var(--primary);">Form Input Temuan Machine TPM</h2>
+              <p style="font-size: 0.875rem; color: var(--text-muted);">Lengkapi data temuan di bawah ini untuk mengirim laporan ke dashboard.</p>
+            </div>
+            <span class="badge badge-open"><i data-lucide="alert-triangle"></i> TPM Abnormality</span>
+          </div>
+
+          <form id="tpm-submit-form" onsubmit="handleFormSubmit(event)">
+            <div id="dynamic-form-fields">
+              <!-- Rendered dynamically by JavaScript -->
+            </div>
+
+            <div class="form-actions-bar" style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
+              <button type="reset" class="btn btn-secondary">
+                <i data-lucide="rotate-ccw"></i> Reset Form
+              </button>
+              <button type="submit" id="btn-submit-tpm" onclick="submitTpmForm()" class="btn btn-primary btn-lg" style="touch-action: manipulation;">
+                <i data-lucide="send"></i> Kirim Ke Web Dashboard
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- TAB 2: WEB DASHBOARD MONITORING -->
+      <section id="tab-dashboard" class="tab-page" style="display: none;">
+        <!-- Metrics Summary Cards -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-icon blue">
+              <i data-lucide="file-check"></i>
+            </div>
+            <div class="metric-info">
+              <span>Total Temuan</span>
+              <h3 id="stat-total">0</h3>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon yellow">
+              <i data-lucide="clock"></i>
+            </div>
+            <div class="metric-info">
+              <span>Status On Progress</span>
+              <h3 id="stat-progress">0</h3>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon green">
+              <i data-lucide="check-circle-2"></i>
+            </div>
+            <div class="metric-info">
+              <span>Status Closed</span>
+              <h3 id="stat-closed">0</h3>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon red">
+              <i data-lucide="bar-chart-3"></i>
+            </div>
+            <div class="metric-info">
+              <span>Completion Rate</span>
+              <h3 id="stat-rate">0%</h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="card" style="margin-bottom: 1.5rem; padding: 1.25rem;">
+          <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between;">
+            <div style="display: flex; gap: 1rem; flex: 1; min-width: 280px;">
+              <div style="position: relative; flex: 1;">
+                <input type="text" id="search-input" class="form-input" placeholder="Cari berdasarkan nama, mesin, atau problem..." oninput="filterTable()">
+              </div>
+
+              <select id="status-filter" class="form-select" style="width: 200px;" onchange="filterTable()">
+                <option value="ALL">Semua Status</option>
+                <option value="On Progress">On Progress</option>
+                <option value="Closed">Close / Closed</option>
+              </select>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+              <button class="btn btn-danger btn-sm" id="btn-delete-selected" style="display: none;" onclick="deleteSelectedResponses()">
+                <i data-lucide="trash-2"></i> Hapus Terpilih (<span id="selected-count">0</span>)
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="exportCSV()">
+                <i data-lucide="download"></i> Export CSV (Excel)
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="exportJSON()">
+                <i data-lucide="file-code"></i> Export JSON
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data Table (Desktop View) -->
+        <div class="card" style="padding: 0; overflow: hidden;">
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width: 40px; text-align: center;">
+                    <input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this)" title="Pilih Semua">
+                  </th>
+                  <th>No</th>
+                  <th>Tanggal</th>
+                  <th>Nama Pelapor</th>
+                  <th>Nama Machine</th>
+                  <th>Temuan / Problem</th>
+                  <th>Ilustrasi</th>
+                  <th>Countermeasure</th>
+                  <th>Tgl Countermeasure</th>
+                  <th>Status</th>
+                  <th style="text-align: center; min-width: 110px;">Aksi / Hapus</th>
+                </tr>
+              </thead>
+              <tbody id="response-table-body">
+                <!-- Rendered by JavaScript -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Mobile Response Cards (Mobile View < 768px) -->
+          <div id="mobile-response-cards" class="mobile-card-list" style="padding: 1rem;">
+            <!-- Rendered by JavaScript for Mobile -->
+          </div>
+
+          <div id="empty-state" style="display: none; text-align: center; padding: 3rem 1rem;">
+            <i data-lucide="inbox" style="width: 48px; height: 48px; color: var(--text-light); margin-bottom: 1rem;"></i>
+            <h3 style="color: var(--text-muted);">Belum ada data temuan TPM</h3>
+            <p style="font-size: 0.875rem; color: var(--text-light); margin-top: 0.25rem;">Isi form atau klik "Load Data Sample" untuk mencoba dashboard.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: VISUAL FORM BUILDER STUDIO -->
+      <section id="tab-builder" class="tab-page" style="display: none;">
+        <div class="builder-layout">
+          <!-- Toolbox -->
+          <div class="elements-toolbox">
+            <h3 class="toolbox-title">Elemen Field</h3>
+            <div class="tool-item" onclick="addFieldToForm('text')">
+              <i data-lucide="type"></i> Teks Singkat (Text)
+            </div>
+            <div class="tool-item" onclick="addFieldToForm('textarea')">
+              <i data-lucide="align-left"></i> Paragraf (Textarea)
+            </div>
+            <div class="tool-item" onclick="addFieldToForm('date')">
+              <i data-lucide="calendar"></i> Tanggal (Datepicker)
+            </div>
+            <div class="tool-item" onclick="addFieldToForm('select')">
+              <i data-lucide="chevron-down"></i> Pilihan Status / Dropdown
+            </div>
+          </div>
+
+          <!-- Canvas Workspace -->
+          <div class="canvas-area">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+              <h3>Canvas Struktur Form TPM</h3>
+              <button class="btn btn-sm btn-primary" onclick="resetFormToDefault()">
+                <i data-lucide="rotate-ccw"></i> Reset ke Preset Default TPM
+              </button>
+            </div>
+            <div id="builder-canvas-fields">
+              <!-- Rendered canvas fields -->
+            </div>
+          </div>
+
+          <!-- Inspector -->
+          <div class="field-inspector">
+            <h3 class="toolbox-title">Pengaturan Form</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+              Setiap perubahan pada form builder akan langsung memperbarui tampilan **Form Input Temuan**.
+            </p>
+            <div class="form-group">
+              <label class="form-label">Judul Form</label>
+              <input type="text" id="builder-form-title" class="form-input" value="Form Follow Up Temuan TPM" oninput="updateFormMeta()">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: SETTINGS & DATA DEMO -->
+      <section id="tab-settings" class="tab-page" style="display: none;">
+        <div class="card" style="max-width: 700px;">
+          <h3 style="margin-bottom: 1rem;">Pengaturan Sistem & Data Demo</h3>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+            Kelola data laporan temuan TPM atau muat data sampel bawaan untuk pengujian dashboard.
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: var(--bg-input); border-radius: var(--radius-md);">
+              <div>
+                <h4 style="font-size: 0.95rem;">Muat Data Sampel Demo</h4>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">Isi dashboard dengan contoh data temuan TPM nyata.</p>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="loadSampleData()">
+                <i data-lucide="database"></i> Load Sample
+              </button>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: var(--danger-light); border-radius: var(--radius-md); border: 1px solid rgba(239, 68, 68, 0.2);">
+              <div>
+                <h4 style="font-size: 0.95rem; color: var(--danger);">Hapus Semua Data Respons</h4>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">Mengosongkan seluruh laporan temuan dari penyimpanan lokal & database server.</p>
+              </div>
+              <button class="btn btn-danger btn-sm" onclick="clearAllData()">
+                <i data-lucide="trash-2"></i> Hapus Semua Data
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MOBILE BOTTOM NAVIGATION BAR -->
+  <nav class="mobile-nav-bar">
+    <button class="mobile-nav-item active" onclick="switchTab('filler')" id="mobile-nav-filler">
+      <i data-lucide="file-text"></i>
+      <span>Form</span>
+    </button>
+
+    <button class="mobile-nav-item" onclick="switchTab('dashboard')" id="mobile-nav-dashboard">
+      <i data-lucide="layout-dashboard"></i>
+      <span>Dashboard</span>
+    </button>
+
+    <button class="mobile-nav-item" onclick="switchTab('builder')" id="mobile-nav-builder">
+      <i data-lucide="sliders"></i>
+      <span>Builder</span>
+    </button>
+
+    <button class="mobile-nav-item" onclick="toggleTheme()" id="mobile-nav-theme">
+      <i data-lucide="moon"></i>
+      <span>Tema</span>
+    </button>
+  </nav>
+
+  <!-- MODAL DETAIL TEMUAN TPM -->
+  <div class="modal-overlay" id="detail-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h2 style="font-size: 1.25rem;" id="modal-title">Detail Temuan TPM</h2>
+          <span id="modal-date" style="font-size: 0.8rem; color: var(--text-muted);"></span>
+        </div>
+        <button class="action-btn" onclick="closeModal()">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div id="modal-body-content" style="display: flex; flex-direction: column; gap: 1rem;">
+        <!-- Filled by JS -->
+      </div>
+
+      <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <button class="btn btn-danger btn-sm" id="btn-modal-delete" onclick="deleteFromModal()">
+          <i data-lucide="trash-2"></i> Hapus Laporan
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="window.print()">
+          <i data-lucide="printer"></i> Cetak Laporan
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="closeModal()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL SHARE FORM & QR CODE -->
+  <div class="modal-overlay" id="share-modal">
+    <div class="modal-card" style="max-width: 480px; text-align: center;">
+      <div class="modal-header">
+        <h2 style="font-size: 1.25rem;">Bagikan Form Temuan TPM</h2>
+        <button class="action-btn" onclick="closeShareModal()">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div style="padding: 0.5rem 0; display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+        <p style="font-size: 0.875rem; color: var(--text-muted);">
+          Scan QR Code di bawah ini untuk membuka Form Input Temuan dari Smartphone, atau salin link di bawah ini.
+        </p>
+
+        <div style="background: white; padding: 1rem; border-radius: var(--radius-md); border: 2px dashed var(--primary); display: inline-block;">
+          <img id="share-qr-code" src="" alt="QR Code Form" style="width: 170px; height: 170px;">
+        </div>
+
+        <div style="width: 100%; display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+          <input type="text" id="share-url-input" class="form-input" readonly style="font-size: 0.85rem;">
+          <button class="btn btn-primary" onclick="copyShareUrl()">
+            <i data-lucide="copy"></i> Copy
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- JavaScript Script Engine -->
+  <script>
+    const DEFAULT_TPM_FIELDS = [
+      { id: 'nama', label: 'Nama', type: 'text', placeholder: 'Masukkan nama pelapor / auditor', required: true },
+      { id: 'machine', label: 'Machine', type: 'text', placeholder: 'Contoh: Machine CNC Milling 01, Stamping Press 200T', required: true },
+      { id: 'problem', label: 'Temuan/Problem', type: 'textarea', placeholder: 'Jelaskan abnormality atau temuan masalah pada mesin...', required: true },
+      { id: 'tgl_temuan', label: 'Tanggal temuan', type: 'date', required: true },
+      { id: 'ilustrasi', label: 'Ilustrasi temuan', type: 'file', accept: 'image/*', placeholder: 'Upload foto / media bukti temuan', required: false },
+      { id: 'plan_perbaikan', label: 'Planning perbaikan', type: 'date', required: false },
+      { id: 'part_butuh', label: 'Part yang dibutuhkan', type: 'text', placeholder: 'Contoh: Bearing 6204ZZ, O-Ring Seal Kit, Limit Switch', required: false },
+      { id: 'type_part', label: 'Type part', type: 'text', placeholder: 'Contoh: Mechanical, Electrical, Pneumatic, Hydraulic', required: false },
+      { id: 'countermeasure', label: 'Countermeasure', type: 'textarea', placeholder: 'Tindakan perbaikan yang dilakukan atau direncanakan...', required: false },
+      { id: 'tgl_countermeasure', label: 'Tanggal countermeasure', type: 'date', required: false },
+      { id: 'status', label: 'Status temuan', type: 'select', options: ['On progress', 'Close'], required: true }
+    ];
+
+    let activeMediaData = {};
+    let currentFields = JSON.parse(localStorage.getItem('tpm_form_fields')) || [...DEFAULT_TPM_FIELDS];
+    let responses = JSON.parse(localStorage.getItem('tpm_responses_data')) || [];
+    let isSyncing = false;
+    let activeDetailId = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!currentFields.some(f => f.id === 'ilustrasi')) {
+        currentFields = [...DEFAULT_TPM_FIELDS];
+        localStorage.setItem('tpm_form_fields', JSON.stringify(currentFields));
+      }
+      renderFormFiller();
+      renderDashboard();
+      renderBuilderCanvas();
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+      const today = new Date().toISOString().split('T')[0];
+      const tglTemuanEl = document.getElementById('tgl_temuan');
+      if (tglTemuanEl && !tglTemuanEl.value) tglTemuanEl.value = today;
+      const savedTheme = localStorage.getItem('theme_preference') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      updateThemeIcon(savedTheme);
+      syncFromBackend();
+      setInterval(syncFromBackend, 4000);
+    });
+
+    async function syncFromBackend() {
+      if (isSyncing) return;
+      isSyncing = true;
+
+      const endpoints = [
+        '/api/findings',
+        'https://tpm-followup-app.surge.sh/api/findings',
+        `http://${window.location.hostname}:5000/api/findings`
+      ];
+
+      for (const ep of endpoints) {
+        try {
+          const res = await fetch(ep, {
+            headers: { 'Accept': 'application/json' }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data)) {
+              responses = data;
+              localStorage.setItem('tpm_responses_data', JSON.stringify(responses));
+              renderDashboard();
+              updateSyncBadge('online');
+              isSyncing = false;
+              return;
+            }
+          }
+        } catch (err) {}
+      }
+
+      responses = JSON.parse(localStorage.getItem('tpm_responses_data')) || [];
+      renderDashboard();
+      updateSyncBadge('local');
+      isSyncing = false;
+    }
+
+    function submitTpmForm() {
+      const form = document.getElementById('tpm-submit-form');
+      if (form) {
+        if (typeof form.checkValidity === 'function' && !form.checkValidity()) {
+          form.reportValidity();
+          return;
+        }
+        const fakeEvent = { preventDefault: () => {} };
+        handleFormSubmit(fakeEvent);
+      }
+    }
+
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      const formData = { id: 'TPM-' + Date.now().toString().slice(-6), createdAt: new Date().toISOString() };
+      currentFields.forEach(field => {
+        if (field.type === 'file') formData[field.id] = activeMediaData[field.id] || '';
+        else { const el = document.getElementById(field.id); formData[field.id] = el ? el.value : ''; }
+      });
+
+      const postEndpoints = [
+        '/api/findings',
+        'https://tpm-followup-app.surge.sh/api/findings',
+        `http://${window.location.hostname}:5000/api/findings`
+      ];
+
+      let posted = false;
+      for (const ep of postEndpoints) {
+        try {
+          const res = await fetch(ep, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          });
+          if (res.ok) { posted = true; break; }
+        } catch (err) {}
+      }
+
+      responses.unshift(formData);
+      localStorage.setItem('tpm_responses_data', JSON.stringify(responses));
+      showToast('Laporan temuan TPM tersimpan & tersinkronisasi!', 'success');
+      e.target.reset(); activeMediaData = {}; document.querySelectorAll('[id^="preview-"]').forEach(el => el.innerHTML = '');
+      const today = new Date().toISOString().split('T')[0];
+      const tglTemuanEl = document.getElementById('tgl_temuan'); if (tglTemuanEl) tglTemuanEl.value = today;
+      renderDashboard(); switchTab('dashboard');
+    }
+
+    function updateSyncBadge(status) {
+      const badge = document.getElementById('cloud-sync-badge');
+      if (!badge) return;
+      if (status === 'online') {
+        badge.className = 'badge badge-closed';
+        badge.innerHTML = '<i data-lucide="cloud"></i> 🟢 Database Synced';
+      } else {
+        badge.className = 'badge';
+        badge.style.background = 'var(--bg-input)';
+        badge.innerHTML = '<i data-lucide="database"></i> 📱 Local Mode';
+      }
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-page').forEach(page => page.style.display = 'none');
+      document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.mobile-nav-item').forEach(btn => btn.classList.remove('active'));
+
+      const targetTab = document.getElementById(`tab-${tabId}`);
+      const targetNav = document.getElementById(`nav-${tabId}`);
+      const targetMobileNav = document.getElementById(`mobile-nav-${tabId}`);
+
+      if (targetTab) targetTab.style.display = 'block';
+      if (targetNav) targetNav.classList.add('active');
+      if (targetMobileNav) targetMobileNav.classList.add('active');
+
+      const titles = {
+        filler: { title: 'Form Follow Up Temuan TPM', subtitle: 'Input data temuan abnormality & planning perbaikan' },
+        dashboard: { title: 'Web Dashboard Follow Up TPM', subtitle: 'Monitoring real-time status temuan & perbaikan mesin' },
+        builder: { title: 'Form Builder Studio', subtitle: 'Kustomisasi struktur field & kriteria form temuan' },
+        settings: { title: 'Pengaturan & Demo Data', subtitle: 'Kelola data laporan & simulasi sampel' }
+      };
+
+      if (titles[tabId]) {
+        document.getElementById('page-title').textContent = titles[tabId].title;
+        document.getElementById('page-subtitle').textContent = titles[tabId].subtitle;
+      }
+      if (tabId === 'dashboard') syncFromBackend();
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme_preference', next);
+      updateThemeIcon(next);
+    }
+
+    function updateThemeIcon(theme) {
+      const icon = document.getElementById('theme-icon');
+      if (icon && typeof lucide !== 'undefined') {
+        icon.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
+        lucide.createIcons();
+      }
+    }
+
+    function renderFormFiller() {
+      const container = document.getElementById('dynamic-form-fields');
+      if (!container) return;
+      container.innerHTML = '';
+      currentFields.forEach(field => {
+        const formGroup = document.createElement('div');
+        formGroup.className = 'form-group';
+        const label = document.createElement('label');
+        label.className = 'form-label';
+        label.innerHTML = `${field.label}${field.required ? ' <span class="required">*</span>' : ''}`;
+        formGroup.appendChild(label);
+        let input;
+        if (field.type === 'textarea') {
+          input = document.createElement('textarea'); input.className = 'form-textarea'; input.rows = 3;
+        } else if (field.type === 'select') {
+          input = document.createElement('select'); input.className = 'form-select';
+          (field.options || ['On progress', 'Close']).forEach(opt => {
+            const option = document.createElement('option'); option.value = opt; option.textContent = opt; input.appendChild(option);
+          });
+        } else if (field.type === 'file') {
+          input = document.createElement('input'); input.type = 'file'; input.accept = field.accept || 'image/*'; input.className = 'form-input';
+          const previewDiv = document.createElement('div'); previewDiv.id = `preview-${field.id}`; previewDiv.style.marginTop = '0.5rem';
+          input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = (event) => {
+                activeMediaData[field.id] = event.target.result;
+                previewDiv.innerHTML = `<div style="position: relative; display: inline-block;"><img src="${event.target.result}" style="max-height: 140px; border-radius: var(--radius-md); border: 2px solid var(--primary); object-fit: cover;"><span style="position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem; cursor: pointer;" onclick="clearMediaPreview('${field.id}')">✕</span></div>`;
+              };
+              reader.readAsDataURL(file);
+            }
+          };
+          formGroup.appendChild(input); formGroup.appendChild(previewDiv); container.appendChild(formGroup); return;
+        } else {
+          input = document.createElement('input'); input.type = field.type || 'text'; input.className = 'form-input';
+        }
+        input.id = field.id; input.name = field.id;
+        if (field.placeholder) input.placeholder = field.placeholder;
+        if (field.required) input.required = true;
+        formGroup.appendChild(input); container.appendChild(formGroup);
+      });
+    }
+
+    function clearMediaPreview(fieldId) {
+      delete activeMediaData[fieldId];
+      const previewDiv = document.getElementById(`preview-${fieldId}`);
+      if (previewDiv) previewDiv.innerHTML = '';
+      const fileInput = document.getElementById(fieldId);
+      if (fileInput) fileInput.value = '';
+    }
+
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      const formData = { id: 'TPM-' + Date.now().toString().slice(-6), createdAt: new Date().toISOString() };
+      currentFields.forEach(field => {
+        if (field.type === 'file') formData[field.id] = activeMediaData[field.id] || '';
+        else { const el = document.getElementById(field.id); formData[field.id] = el ? el.value : ''; }
+      });
+      try {
+        await fetch('/api/findings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
+      } catch (err) {
+        try {
+          await fetch('https://kvdb.io/W8j2g47Z8x3M2p9Q4k1L6v/tpm_followup_master_v1', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify([formData, ...responses]) });
+        } catch (e) {}
+      }
+      responses.unshift(formData); localStorage.setItem('tpm_responses_data', JSON.stringify(responses));
+      showToast('Laporan temuan TPM tersimpan & tersinkronisasi!', 'success');
+      e.target.reset(); activeMediaData = {}; document.querySelectorAll('[id^="preview-"]').forEach(el => el.innerHTML = '');
+      const today = new Date().toISOString().split('T')[0];
+      const tglTemuanEl = document.getElementById('tgl_temuan'); if (tglTemuanEl) tglTemuanEl.value = today;
+      renderDashboard(); switchTab('dashboard');
+    }
+
+    function renderDashboard() {
+      const tableBody = document.getElementById('response-table-body');
+      const mobileContainer = document.getElementById('mobile-response-cards');
+      const emptyState = document.getElementById('empty-state');
+      const total = responses.length;
+      const onProgress = responses.filter(r => r.status === 'On progress').length;
+      const closed = responses.filter(r => r.status === 'Close' || r.status === 'Closed').length;
+      const completionRate = total > 0 ? Math.round((closed / total) * 100) : 0;
+
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-progress').textContent = onProgress;
+      document.getElementById('stat-closed').textContent = closed;
+      document.getElementById('stat-rate').textContent = `${completionRate}%`;
+      document.getElementById('badge-total-count').textContent = total;
+
+      if (total === 0) {
+        if (tableBody) tableBody.innerHTML = '';
+        if (mobileContainer) mobileContainer.innerHTML = '';
+        emptyState.style.display = 'block'; return;
+      }
+      emptyState.style.display = 'none';
+      renderTableData(responses);
+    }
+
+    function renderTableData(dataList) {
+      const tableBody = document.getElementById('response-table-body');
+      const mobileContainer = document.getElementById('mobile-response-cards');
+      if (tableBody) tableBody.innerHTML = '';
+      if (mobileContainer) mobileContainer.innerHTML = '';
+
+      dataList.forEach((item, index) => {
+        const isClosed = item.status === 'Close' || item.status === 'Closed';
+        const hasMedia = item.ilustrasi && item.ilustrasi.length > 0;
+        if (tableBody) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="text-align: center;"><input type="checkbox" class="row-checkbox" value="${item.id}" onchange="updateSelectedCount()"></td>
+            <td><strong>#${index + 1}</strong></td>
+            <td>${formatDate(item.tgl_temuan)}</td>
+            <td><strong>${escapeHtml(item.nama || '-')}</strong></td>
+            <td><span class="badge" style="background: var(--bg-input); border: 1px solid var(--border-color);">${escapeHtml(item.machine || '-')}</span></td>
+            <td style="max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(item.problem || '-')}</td>
+            <td style="text-align: center;">${hasMedia ? `<img src="${item.ilustrasi}" style="width: 36px; height: 36px; border-radius: 6px; object-fit: cover; cursor: pointer; border: 1px solid var(--primary);" onclick="viewDetail('${item.id}')" title="Klik untuk lihat foto">` : '<span style="color:var(--text-light)">-</span>'}</td>
+            <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(item.countermeasure || '-')}</td>
+            <td>${formatDate(item.tgl_countermeasure)}</td>
+            <td>
+              <select class="form-select" style="padding: 0.25rem 0.6rem; font-size: 0.8rem; font-weight: 600; width: auto;" onchange="updateItemStatus('${item.id}', this.value)">
+                <option value="On progress" ${!isClosed ? 'selected' : ''}>🟡 On progress</option>
+                <option value="Close" ${isClosed ? 'selected' : ''}>🟢 Close</option>
+              </select>
+            </td>
+            <td style="text-align: center; white-space: nowrap;">
+              <button class="btn btn-secondary btn-sm" onclick="viewDetail('${item.id}')" title="Lihat Detail"><i data-lucide="eye"></i> Detail</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteResponse('${item.id}')" title="Hapus Laporan Ini"><i data-lucide="trash-2"></i> Hapus</button>
+            </td>
+          `;
+          tableBody.appendChild(tr);
+        }
+        if (mobileContainer) {
+          const card = document.createElement('div');
+          card.className = 'mobile-response-card';
+          card.innerHTML = `
+            <div class="mobile-card-header">
+              <span class="mobile-card-title">${escapeHtml(item.machine || 'Machine')}</span>
+              <select class="form-select" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; width: auto;" onchange="updateItemStatus('${item.id}', this.value)">
+                <option value="On progress" ${!isClosed ? 'selected' : ''}>🟡 On progress</option>
+                <option value="Close" ${isClosed ? 'selected' : ''}>🟢 Close</option>
+              </select>
+            </div>
+            <div class="mobile-card-detail">
+              <div><strong>Pelapor:</strong> ${escapeHtml(item.nama || '-')} | <strong>Tgl:</strong> ${formatDate(item.tgl_temuan)}</div>
+              <div style="margin-top: 0.35rem; color: var(--text-main);"><strong>Problem:</strong> ${escapeHtml(item.problem || '-')}</div>
+              ${hasMedia ? `<div style="margin-top: 0.5rem;"><img src="${item.ilustrasi}" style="width: 100%; max-height: 160px; border-radius: var(--radius-md); object-fit: cover;"></div>` : ''}
+              <div style="margin-top: 0.35rem; color: var(--primary);"><strong>Countermeasure:</strong> ${escapeHtml(item.countermeasure || '-')}</div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.4rem; padding-top: 0.5rem; border-top: 1px solid var(--border-color);">
+              <button class="btn btn-secondary btn-sm" onclick="viewDetail('${item.id}')"><i data-lucide="eye"></i> Detail</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteResponse('${item.id}')"><i data-lucide="trash-2"></i> Hapus</button>
+            </div>
+          `;
+          mobileContainer.appendChild(card);
+        }
+      });
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+      updateSelectedCount();
+    }
+
+    function toggleSelectAll(master) {
+      const checkboxes = document.querySelectorAll('.row-checkbox');
+      checkboxes.forEach(cb => cb.checked = master.checked);
+      updateSelectedCount();
+    }
+
+    function updateSelectedCount() {
+      const selected = document.querySelectorAll('.row-checkbox:checked');
+      const count = selected.length;
+      const btnDelete = document.getElementById('btn-delete-selected');
+      const countSpan = document.getElementById('selected-count');
+      if (countSpan) countSpan.textContent = count;
+      if (btnDelete) btnDelete.style.display = count > 0 ? 'inline-flex' : 'none';
+    }
+
+    async function deleteSelectedResponses() {
+      const selected = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+      if (selected.length === 0) return;
+      if (confirm(`Apakah Anda yakin ingin menghapus ${selected.length} data temuan yang dipilih?`)) {
+        for (const id of selected) {
+          try { await fetch(`/api/findings/${id}`, { method: 'DELETE' }); } catch (e) {}
+        }
+        responses = responses.filter(r => !selected.includes(r.id));
+        localStorage.setItem('tpm_responses_data', JSON.stringify(responses));
+        showToast(`${selected.length} data temuan berhasil dihapus`, 'info');
+        renderDashboard();
+      }
+    }
+
+    function deleteFromModal() {
+      if (activeDetailId) { deleteResponse(activeDetailId); closeModal(); }
+    }
+
+    async function updateItemStatus(id, newStatus) {
+      const target = responses.find(r => r.id === id);
+      if (target) {
+        target.status = newStatus;
+        try {
+          await fetch(`/api/findings/${id}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) });
+        } catch (e) {}
+        localStorage.setItem('tpm_responses_data', JSON.stringify(responses));
+        showToast(`Status temuan ${id} diperbarui menjadi "${newStatus}"`, 'info');
+        renderDashboard();
+      }
+    }
+
+    function filterTable() {
+      const searchTerm = document.getElementById('search-input').value.toLowerCase();
+      const statusFilter = document.getElementById('status-filter').value;
+      const filtered = responses.filter(r => {
+        const matchesSearch = (r.nama && r.nama.toLowerCase().includes(searchTerm)) || (r.machine && r.machine.toLowerCase().includes(searchTerm)) || (r.problem && r.problem.toLowerCase().includes(searchTerm)) || (r.countermeasure && r.countermeasure.toLowerCase().includes(searchTerm));
+        const matchesStatus = statusFilter === 'ALL' || (statusFilter === 'On progress' && r.status === 'On progress') || (statusFilter === 'Closed' && (r.status === 'Close' || r.status === 'Closed'));
+        return matchesSearch && matchesStatus;
+      });
+      renderTableData(filtered);
+    }
+
+    async function deleteResponse(id) {
+      if (confirm('Apakah Anda yakin ingin menghapus data temuan ini?')) {
+        try { await fetch(`/api/findings/${id}`, { method: 'DELETE' }); } catch (e) {}
+        responses = responses.filter(r => r.id !== id);
+        localStorage.setItem('tpm_responses_data', JSON.stringify(responses));
+        showToast('Data temuan berhasil dihapus', 'info');
+        renderDashboard();
+      }
+    }
+
+    function viewDetail(id) {
+      const item = responses.find(r => r.id === id); if (!item) return;
+      activeDetailId = id;
+      const modal = document.getElementById('detail-modal');
+      const title = document.getElementById('modal-title');
+      const dateSpan = document.getElementById('modal-date');
+      const body = document.getElementById('modal-body-content');
+      title.textContent = `Laporan Temuan: ${item.machine || 'Machine'}`;
+      dateSpan.textContent = `ID: ${item.id} | Dibuat: ${formatDate(item.createdAt)}`;
+      const mediaHtml = item.ilustrasi ? `<div style="margin-bottom: 0.5rem;"><h4 style="margin-bottom: 0.4rem; color: var(--text-main);">Ilustrasi / Foto Temuan:</h4><img src="${item.ilustrasi}" style="width: 100%; max-height: 260px; border-radius: var(--radius-md); border: 1px solid var(--border-color); object-fit: cover;"></div>` : '';
+      body.innerHTML = `${mediaHtml}<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; background: var(--bg-input); padding: 1rem; border-radius: var(--radius-md);"><div><strong>Nama Pelapor:</strong> ${escapeHtml(item.nama || '-')}</div><div><strong>Nama Machine:</strong> ${escapeHtml(item.machine || '-')}</div><div><strong>Tanggal Temuan:</strong> ${formatDate(item.tgl_temuan)}</div><div><strong>Planning Perbaikan:</strong> ${formatDate(item.plan_perbaikan)}</div><div><strong>Part Dibutuhkan:</strong> ${escapeHtml(item.part_butuh || '-')}</div><div><strong>Type Part:</strong> ${escapeHtml(item.type_part || '-')}</div><div><strong>Tanggal Countermeasure:</strong> ${formatDate(item.tgl_countermeasure)}</div><div><strong>Status Temuan:</strong> <strong>${escapeHtml(item.status || '-')}</strong></div></div><div><h4 style="margin-bottom: 0.4rem; color: var(--text-main);">Temuan / Problem Abnormality:</h4><p style="background: var(--bg-input); padding: 0.85rem; border-radius: var(--radius-md); font-size: 0.9rem; line-height: 1.6;">${escapeHtml(item.problem || 'Tidak ada deskripsi')}</p></div><div><h4 style="margin-bottom: 0.4rem; color: var(--primary);">Countermeasure / Tindakan Perbaikan:</h4><p style="background: var(--primary-light); color: var(--text-main); padding: 0.85rem; border-radius: var(--radius-md); font-size: 0.9rem; line-height: 1.6;">${escapeHtml(item.countermeasure || 'Belum diisi')}</p></div>`;
+      modal.classList.add('active'); if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function closeModal() { document.getElementById('detail-modal').classList.remove('active'); }
+    function openShareModal() {
+      const modal = document.getElementById('share-modal');
+      const input = document.getElementById('share-url-input');
+      const qrImg = document.getElementById('share-qr-code');
+      const currentUrl = 'https://e230e814ec5974ff-114-10-114-130.serveousercontent.com';
+      input.value = currentUrl;
+      qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(currentUrl)}`;
+      modal.classList.add('active'); if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+    function closeShareModal() { document.getElementById('share-modal').classList.remove('active'); }
+    function copyShareUrl() {
+      const input = document.getElementById('share-url-input'); input.select();
+      navigator.clipboard.writeText(input.value).then(() => showToast('Link Form berhasil disalin ke clipboard!', 'success')).catch(() => showToast('Link Form disalin!', 'info'));
+    }
+    function exportCSV() {
+      if (responses.length === 0) { showToast('Tidak ada data untuk di-export!', 'warning'); return; }
+      const headers = ['ID', 'Nama', 'Machine', 'Temuan Problem', 'Tanggal Temuan', 'Planning Perbaikan', 'Part Dibutuhkan', 'Type Part', 'Countermeasure', 'Tanggal Countermeasure', 'Status'];
+      const rows = responses.map(r => [r.id, `"${(r.nama || '').replace(/"/g, '""')}"`, `"${(r.machine || '').replace(/"/g, '""')}"`, `"${(r.problem || '').replace(/"/g, '""')}"`, r.tgl_temuan || '', r.plan_perbaikan || '', `"${(r.part_butuh || '').replace(/"/g, '""')}"`, `"${(r.type_part || '').replace(/"/g, '""')}"`, `"${(r.countermeasure || '').replace(/"/g, '""')}"`, r.tgl_countermeasure || '', r.status || '']);
+      const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+      const encodedUri = encodeURI(csvContent); const link = document.createElement('a'); link.setAttribute('href', encodedUri); link.setAttribute('download', `TPM_FollowUp_Export_${new Date().toISOString().slice(0, 10)}.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link);
+      showToast('File CSV berhasil diunduh!', 'success');
+    }
+    function exportJSON() {
+      if (responses.length === 0) { showToast('Tidak ada data untuk di-export!', 'warning'); return; }
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(responses, null, 2));
+      const link = document.createElement('a'); link.setAttribute('href', dataStr); link.setAttribute('download', `TPM_FollowUp_Export_${new Date().toISOString().slice(0, 10)}.json`); document.body.appendChild(link); link.click(); document.body.removeChild(link);
+      showToast('File JSON berhasil diunduh!', 'success');
+    }
+    function renderBuilderCanvas() {
+      const container = document.getElementById('builder-canvas-fields'); if (!container) return;
+      container.innerHTML = '';
+      currentFields.forEach((field, index) => {
+        const card = document.createElement('div'); card.className = 'canvas-field';
+        card.innerHTML = `<div class="field-actions"><button class="action-btn" onclick="deleteBuilderField(${index})" title="Hapus Field"><i data-lucide="trash-2"></i></button></div><div style="font-weight: 600; color: var(--text-main); margin-bottom: 0.25rem;">${escapeHtml(field.label)} ${field.required ? '<span style="color:var(--danger)">*</span>' : ''}</div><div style="font-size: 0.8rem; color: var(--text-muted);">Tipe: <code>${field.type}</code> | ID: <code>${field.id}</code></div>`;
+        container.appendChild(card);
+      });
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+    function addFieldToForm(type) {
+      const label = prompt('Masukkan Nama Label Field Baru:', 'Field Baru'); if (!label) return;
+      const id = label.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + Date.now().toString().slice(-4);
+      const newField = { id: id, label: label, type: type, placeholder: `Masukkan ${label}...`, required: false };
+      if (type === 'select') newField.options = ['On progress', 'Close'];
+      currentFields.push(newField); localStorage.setItem('tpm_form_fields', JSON.stringify(currentFields));
+      renderFormFiller(); renderBuilderCanvas(); showToast(`Field "${label}" berhasil ditambahkan!`, 'success');
+    }
+    function deleteBuilderField(index) {
+      if (confirm(`Apakah Anda yakin ingin menghapus field "${currentFields[index].label}"?`)) {
+        currentFields.splice(index, 1); localStorage.setItem('tpm_form_fields', JSON.stringify(currentFields)); renderFormFiller(); renderBuilderCanvas(); showToast('Field berhasil dihapus dari form!', 'info');
+      }
+    }
+    function resetFormToDefault() {
+      if (confirm('Kembalikan struktur form ke preset default TPM?')) {
+        currentFields = [...DEFAULT_TPM_FIELDS]; localStorage.setItem('tpm_form_fields', JSON.stringify(currentFields)); renderFormFiller(); renderBuilderCanvas(); showToast('Form telah dikembalikan ke struktur default TPM!', 'success');
+      }
+    }
+    async function loadSampleData() {
+      const sampleMedia1 = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgNDAwIDIwMCI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiMxZTI5M2IiLz48dGV4dCB4PSI1MCUiIHk9IjQ1JSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI2VmNDQ0NCIgZm9udC1zaXplPSIyMCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtd2VpZ2h0PSJib2xkIj7imKAgS2Vib2NvcmFuIFNwaW5kbGU8L3RleHQ+PHRleHQgeD0iNTAlIiB5PSI2NSUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM5NGEzYjgiIGZvbnQtc2l6ZT0iMTQiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj5UZW11YW4gQWJub3JtYWxpdHkgT2xpIExpbmUgMTwvdGV4dD48L3N2Zz4=';
+      const sampleMedia2 = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgNDAwIDIwMCI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiMwZjE3MmEiLz48dGV4dCB4PSI1MCUiIHk9IjQ1JSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI2Y1OWUwYiIgZm9udC1zaXplPSIyMCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtd2VpZ2h0PSJib2xkIj7imqEgTGlnaHQgQ3VydGFpbiBFcnJvcjwvdGV4dD48dGV4dCB4PSI1MCUiIHk9IjY1JSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI2E4YjJkMSIgZm9udC1zaXplPSIxNCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPlNlbnNvciBPdmVyaGVhdCBTdGFtcGluZzwvdGV4dD48L3N2Zz4=';
+      const sampleItems = [
+        { id: "TPM-882101", nama: "Budi Santoso", machine: "CNC Milling Mazak 01", problem: "Kebocoran Oli Spindle Utama & Bunyi Abnormal pada Axis Z saat kecepatan tinggi.", tgl_temuan: "2026-08-01", ilustrasi: sampleMedia1, plan_perbaikan: "2026-08-03", part_butuh: "Seal Ring Spindle NBR & Bearing NSK 6208", type_part: "Mechanical / Hydraulic", countermeasure: "Penggantian Seal Ring Spindle & Refill Oli Hydraulic ISO VG 46.", tgl_countermeasure: "2026-08-03", status: "Close" },
+        { id: "TPM-882102", nama: "Ahmad Hidayat", machine: "Stamping Press Aida 200T", problem: "Sensor Safety Light Curtain sering Error Tripping saat temperatur tinggi.", tgl_temuan: "2026-08-04", ilustrasi: sampleMedia2, plan_perbaikan: "2026-08-08", part_butuh: "Photoelectric Sensor Receiver Omron F3SJ", type_part: "Electrical / Automation", countermeasure: "Pembersihan Lensa Sensor & Penguncian Ulang Kabel Signal.", tgl_countermeasure: "2026-08-06", status: "On progress" },
+        { id: "TPM-882103", nama: "Rian Pratama", machine: "Robot Welding Yaskawa L1", problem: "Nozzle Welding Torch cepat aus dan akumulasi Spatter tinggi.", tgl_temuan: "2026-08-05", ilustrasi: "", plan_perbaikan: "2026-08-06", part_butuh: "Copper Nozzle 16mm & Anti Spatter Spray", tgl_countermeasure: "2026-08-06", status: "Close" },
+        { id: "TPM-882104", nama: "Eko Wijaya", machine: "Compressor Air Atlas Copco", problem: "Tekanan Udara Drop dari 7.5 Bar menjadi 5.8 Bar saat Line Assembly Full Operation.", tgl_temuan: "2026-08-07", ilustrasi: "", plan_perbaikan: "2026-08-10", part_butuh: "Air Filter Element & Intake Valve Maintenance Kit", type_part: "Pneumatic System", countermeasure: "Inspeksi kebocoran pipa utama & pembersihan air filter.", tgl_countermeasure: "", status: "On progress" }
+      ];
+      try { await fetch('/api/seed', { method: 'POST' }); } catch (e) {}
+      syncFromBackend();
+      showToast('Sample data temuan TPM dimasukkan & tersimpan!', 'success');
+    }
+
+    async function clearAllData() {
+      if (confirm('Apakah Anda yakin ingin menghapus SELURUH data respons temuan?')) {
+        try { await fetch('/api/findings/all', { method: 'DELETE' }); } catch (e) {}
+        responses = []; localStorage.setItem('tpm_responses_data', JSON.stringify(responses)); renderDashboard(); showToast('Seluruh data respons telah dikosongkan.', 'info');
+      }
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '-'; const d = new Date(dateStr); if (isNaN(d.getTime())) return dateStr;
+      const day = String(d.getDate()).padStart(2, '0'); const month = String(d.getMonth() + 1).padStart(2, '0'); const year = d.getFullYear(); return `${day}/${month}/${year}`;
+    }
+    function escapeHtml(str) {
+      if (!str) return ''; return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container'); if (!container) return;
+      const toast = document.createElement('div'); toast.className = 'toast'; toast.innerHTML = `<span style="font-size: 0.9rem; font-weight: 500;">${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(100%)'; toast.style.transition = 'all 0.3s ease'; setTimeout(() => toast.remove(), 300); }, 3500);
+    }
+  </script>
+</body>
+</html>
