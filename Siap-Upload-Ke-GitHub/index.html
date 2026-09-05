@@ -299,7 +299,7 @@
               <button type="reset" class="btn btn-secondary">
                 <i data-lucide="rotate-ccw"></i> Reset Form
               </button>
-              <button type="submit" id="btn-submit-tpm" onclick="submitTpmForm()" class="btn btn-primary btn-lg" style="touch-action: manipulation;">
+              <button type="button" id="btn-submit-tpm" onclick="submitTpmForm()" class="btn btn-primary btn-lg" style="touch-action: manipulation; -webkit-tap-highlight-color: transparent;">
                 <i data-lucide="send"></i> Kirim Ke Web Dashboard
               </button>
             </div>
@@ -607,6 +607,7 @@
     let currentFields = JSON.parse(localStorage.getItem('tpm_form_fields')) || [...DEFAULT_TPM_FIELDS];
     let responses = JSON.parse(localStorage.getItem('tpm_responses_data')) || [];
     let isSyncing = false;
+    let isSubmitting = false;
     let activeDetailId = null;
 
     // ============================================================
@@ -682,20 +683,36 @@
       isSyncing = false;
     }
 
+    // Hapus field ilustrasi (base64 foto) dari data cloud agar file tidak >1MB
+    // Foto hanya disimpan di localStorage device yang bersangkutan
+    function stripImagesForCloud(findingsList) {
+      return findingsList.map(item => {
+        const copy = Object.assign({}, item);
+        if (copy.ilustrasi && copy.ilustrasi.startsWith('data:')) {
+          copy.ilustrasi = ''; // Hapus gambar base64 dari cloud
+        }
+        return copy;
+      });
+    }
+
     async function saveToCloud(findingsList) {
       try {
-        // Ambil SHA terbaru agar bisa update file
+        // Strip gambar base64 agar file tidak melebihi batas GitHub API 1MB
+        const cloudSafeList = stripImagesForCloud(findingsList);
+        const payload = JSON.stringify({ findings: cloudSafeList });
+
+        // Selalu ambil SHA terbaru sebelum menyimpan (hindari 409 Conflict)
         const metaRes = await fetch(GH_API, {
           headers: {
             'Authorization': 'token ' + GH_TOKEN,
-            'Accept': 'application/vnd.github+json'
+            'Accept': 'application/vnd.github+json',
+            'Cache-Control': 'no-cache'
           }
         });
-        if (metaRes.ok) {
-          const meta = await metaRes.json();
-          _ghFileSha = meta.sha;
-        }
-        const payload = JSON.stringify({ findings: findingsList });
+        if (!metaRes.ok) return false;
+        const meta = await metaRes.json();
+        _ghFileSha = meta.sha;
+
         const encoded = btoa(unescape(encodeURIComponent(payload)));
         const body = JSON.stringify({
           message: 'TPM Update: ' + new Date().toISOString(),
@@ -716,24 +733,39 @@
           _ghFileSha = result.content.sha;
           return true;
         }
-      } catch (e) {}
+        // Jika 409 Conflict (SHA mismatch), retry sekali
+        if (putRes.status === 409) {
+          console.warn('SHA conflict, retrying...');
+          return await saveToCloud(findingsList);
+        }
+      } catch (e) { console.error('saveToCloud error:', e); }
       return false;
     }
 
     function submitTpmForm() {
+      // Guard: Cegah double submission
+      if (isSubmitting) return;
       const form = document.getElementById('tpm-submit-form');
-      if (form) {
-        if (typeof form.checkValidity === 'function' && !form.checkValidity()) {
-          form.reportValidity();
-          return;
-        }
-        const fakeEvent = { preventDefault: () => {} };
-        handleFormSubmit(fakeEvent);
+      if (!form) return;
+      // Validasi form native
+      if (typeof form.checkValidity === 'function' && !form.checkValidity()) {
+        form.reportValidity();
+        return;
       }
+      const fakeEvent = { preventDefault: () => {}, target: form };
+      handleFormSubmit(fakeEvent);
     }
 
     async function handleFormSubmit(e) {
       e.preventDefault();
+      // Guard: Cegah double submission
+      if (isSubmitting) return;
+      isSubmitting = true;
+
+      // Update UI tombol
+      const btn = document.getElementById('btn-submit-tpm');
+      if (btn) { btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2"></i> Menyimpan...'; }
+
       const formData = { id: 'TPM-' + Date.now().toString().slice(-6), createdAt: new Date().toISOString() };
       currentFields.forEach(field => {
         if (field.type === 'file') formData[field.id] = activeMediaData[field.id] || '';
@@ -745,7 +777,6 @@
       localStorage.setItem('tpm_responses_data', JSON.stringify(responses));
       renderDashboard();
       switchTab('dashboard');
-      showToast('Menyimpan & sinkronisasi ke cloud...', 'info');
 
       // Simpan ke GitHub cloud database
       const saved = await saveToCloud(responses);
@@ -755,9 +786,17 @@
       );
       if (saved) updateSyncBadge('online');
 
-      e.target.reset(); activeMediaData = {}; document.querySelectorAll('[id^="preview-"]').forEach(el => el.innerHTML = '');
+      // Reset form
+      const form = document.getElementById('tpm-submit-form');
+      if (form) form.reset();
+      activeMediaData = {};
+      document.querySelectorAll('[id^="preview-"]').forEach(el => el.innerHTML = '');
       const today = new Date().toISOString().split('T')[0];
       const tglTemuanEl = document.getElementById('tgl_temuan'); if (tglTemuanEl) tglTemuanEl.value = today;
+
+      // Restore tombol
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="send"></i> Kirim Ke Web Dashboard'; if (typeof lucide !== 'undefined') lucide.createIcons(); }
+      isSubmitting = false;
     }
 
     function updateSyncBadge(status) {
