@@ -1,4 +1,12 @@
-const API_BASE = '';
+const SUPABASE_URL = 'https://mcpialjglophvgmjlrid.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jcGlhbGpnbG9waHZnbWpscmlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2MjEzMDcsImV4cCI6MjEwNDE5NzMwN30.JC4zIWs4XJH0kaRdUIHj5hcY3DR3AA8DlCglwUfHhsY';
+
+const HEADERS = {
+  'apikey': SUPABASE_KEY,
+  'Authorization': `Bearer ${SUPABASE_KEY}`,
+  'Content-Type': 'application/json',
+  'Prefer': 'return=representation'
+};
 
 const DEFAULT_TPM_FIELDS = [
   { id: 'nama', label: 'Nama', type: 'text', placeholder: 'Masukkan nama pelapor / auditor', required: true },
@@ -38,15 +46,20 @@ document.addEventListener('DOMContentLoaded', () => {
   updateThemeIcon(savedTheme);
   
   syncFromBackend();
-  setInterval(syncFromBackend, 15000); // Poll tiap 15 detik
+  setInterval(syncFromBackend, 10000); // Poll tiap 10 detik untuk sync multi-device
 });
 
-// LOAD DATA - only from API
+// LOAD DATA - directly from Supabase Cloud Database
 async function syncFromBackend() {
   if (isSyncing) return;
   isSyncing = true;
   try {
-    const res = await fetch(API_BASE + '/api/findings');
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/findings?select=*&order=id.desc`, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      }
+    });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     responses = await res.json();
     renderDashboard();
@@ -54,7 +67,6 @@ async function syncFromBackend() {
   } catch (err) {
     console.warn('Sync error:', err);
     updateSyncBadge('offline');
-    // do NOT fall back to localStorage for data
   } finally {
     isSyncing = false;
   }
@@ -65,10 +77,10 @@ function updateSyncBadge(status) {
   if (!badge) return;
   if (status === 'online') {
     badge.className = 'badge badge-closed';
-    badge.innerHTML = '<i data-lucide="cloud"></i> 🟢 Database Synced';
+    badge.innerHTML = '<i data-lucide="cloud"></i> 🟢 Supabase Cloud Synced';
   } else {
     badge.className = 'badge badge-open';
-    badge.innerHTML = '<i data-lucide="wifi-off"></i> 🔴 Backend Offline';
+    badge.innerHTML = '<i data-lucide="wifi-off"></i> 🔴 Cloud Disconnected';
   }
   if (typeof lucide !== 'undefined') lucide.createIcons();
 }
@@ -180,7 +192,7 @@ function submitTpmForm() {
   handleFormSubmit(fakeEvent);
 }
 
-// SUBMIT - POST to API, only update UI on success
+// SUBMIT - POST to Supabase
 async function handleFormSubmit(e) {
   e.preventDefault();
   if (isSubmitting) return;
@@ -189,23 +201,27 @@ async function handleFormSubmit(e) {
   const btn = document.getElementById('btn-submit-tpm');
   if (btn) { btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2"></i> Menyimpan...'; }
 
-  const formData = { id: 'TPM-' + Date.now().toString().slice(-6), createdAt: new Date().toISOString() };
+  const formData = {};
   currentFields.forEach(field => {
     if (field.type === 'file') formData[field.id] = activeMediaData[field.id] || '';
-    else { const el = document.getElementById(field.id); formData[field.id] = el ? el.value : ''; }
+    else { const el = document.getElementById(field.id); formData[field.id] = el ? el.value.trim() : ''; }
   });
 
+  if (!formData.status) formData.status = 'On progress';
+
   try {
-    const res = await fetch(API_BASE + '/api/findings', {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/findings`, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: HEADERS,
       body: JSON.stringify(formData)
     });
-    if (!res.ok) throw new Error('Save failed: HTTP ' + res.status);
+    if (!res.ok) {
+      const errTxt = await res.text();
+      throw new Error('Save failed: ' + res.status + ' ' + errTxt);
+    }
     
-    // Only refresh dashboard AFTER confirmed save
     await syncFromBackend();
-    showToast('✅ Laporan berhasil disimpan ke database!', 'success');
+    showToast('✅ Laporan berhasil disimpan ke Database Cloud Supabase!', 'success');
     switchTab('dashboard');
 
     // reset form
@@ -241,9 +257,10 @@ function renderDashboard() {
   if (total === 0) {
     if (tableBody) tableBody.innerHTML = '';
     if (mobileContainer) mobileContainer.innerHTML = '';
-    emptyState.style.display = 'block'; return;
+    if (emptyState) emptyState.style.display = 'block';
+    return;
   }
-  emptyState.style.display = 'none';
+  if (emptyState) emptyState.style.display = 'none';
   renderTableData(responses);
 }
 
@@ -260,7 +277,7 @@ function renderTableData(dataList) {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td style="text-align: center;"><input type="checkbox" class="row-checkbox" value="${item.id}" onchange="updateSelectedCount()"></td>
-        <td><strong>#${index + 1}</strong></td>
+        <td><strong>#${item.id || (index + 1)}</strong></td>
         <td>${formatDate(item.tgl_temuan)}</td>
         <td><strong>${escapeHtml(item.nama || '-')}</strong></td>
         <td><span class="badge" style="background: var(--bg-input); border: 1px solid var(--border-color);">${escapeHtml(item.machine || '-')}</span></td>
@@ -333,7 +350,13 @@ async function deleteSelectedResponses() {
   let deletedCount = 0;
   for (const id of selected) {
     try {
-      const res = await fetch(API_BASE + `/api/findings/${id}`, {method: 'DELETE'});
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/findings?id=eq.${id}`, {
+        method: 'DELETE',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`
+        }
+      });
       if (res.ok) deletedCount++;
     } catch (e) {
       console.error(e);
@@ -352,20 +375,24 @@ function deleteFromModal() {
   if (activeDetailId) { deleteResponse(activeDetailId); closeModal(); }
 }
 
-// STATUS UPDATE
+// STATUS UPDATE - PATCH to Supabase
 async function updateItemStatus(id, newStatus) {
   try {
-    const res = await fetch(API_BASE + `/api/findings/${id}/status`, {
-      method: 'PUT',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({status: newStatus})
+    const payload = { status: newStatus };
+    if (newStatus === 'Close' || newStatus === 'Closed') {
+      payload.tgl_countermeasure = new Date().toISOString().split('T')[0];
+    }
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/findings?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: HEADERS,
+      body: JSON.stringify(payload)
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     await syncFromBackend();
     showToast(`Status berhasil diperbarui → "${newStatus}"`, 'info');
   } catch (err) {
     showToast('❌ Gagal update status: ' + err.message, 'error');
-    await syncFromBackend(); // reload to show correct state
+    await syncFromBackend();
   }
 }
 
@@ -380,28 +407,34 @@ function filterTable() {
   renderTableData(filtered);
 }
 
-// DELETE
+// DELETE single item from Supabase
 async function deleteResponse(id) {
   if (!confirm('Hapus data temuan ini?')) return;
   try {
-    const res = await fetch(API_BASE + `/api/findings/${id}`, {method: 'DELETE'});
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/findings?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      }
+    });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     await syncFromBackend();
-    showToast('Data berhasil dihapus.', 'info');
+    showToast('Data berhasil dihapus dari Cloud Supabase.', 'info');
   } catch (err) {
     showToast('❌ Gagal menghapus: ' + err.message, 'error');
   }
 }
 
 function viewDetail(id) {
-  const item = responses.find(r => r.id === id); if (!item) return;
+  const item = responses.find(r => r.id == id); if (!item) return;
   activeDetailId = id;
   const modal = document.getElementById('detail-modal');
   const title = document.getElementById('modal-title');
   const dateSpan = document.getElementById('modal-date');
   const body = document.getElementById('modal-body-content');
   title.textContent = `Laporan Temuan: ${item.machine || 'Machine'}`;
-  dateSpan.textContent = `ID: ${item.id} | Dibuat: ${formatDate(item.createdAt)}`;
+  dateSpan.textContent = `ID: #${item.id} | Dibuat: ${formatDate(item.created_at || item.tgl_temuan)}`;
   const mediaHtml = item.ilustrasi ? `<div style="margin-bottom: 0.5rem;"><h4 style="margin-bottom: 0.4rem; color: var(--text-main);">Ilustrasi / Foto Temuan:</h4><img src="${item.ilustrasi}" style="width: 100%; max-height: 260px; border-radius: var(--radius-md); border: 1px solid var(--border-color); object-fit: cover;"></div>` : '';
   body.innerHTML = `${mediaHtml}<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; background: var(--bg-input); padding: 1rem; border-radius: var(--radius-md);"><div><strong>Nama Pelapor:</strong> ${escapeHtml(item.nama || '-')}</div><div><strong>Nama Machine:</strong> ${escapeHtml(item.machine || '-')}</div><div><strong>Tanggal Temuan:</strong> ${formatDate(item.tgl_temuan)}</div><div><strong>Planning Perbaikan:</strong> ${formatDate(item.plan_perbaikan)}</div><div><strong>Part Dibutuhkan:</strong> ${escapeHtml(item.part_butuh || '-')}</div><div><strong>Type Part:</strong> ${escapeHtml(item.type_part || '-')}</div><div><strong>Tanggal Countermeasure:</strong> ${formatDate(item.tgl_countermeasure)}</div><div><strong>Status Temuan:</strong> <strong>${escapeHtml(item.status || '-')}</strong></div></div><div><h4 style="margin-bottom: 0.4rem; color: var(--text-main);">Temuan / Problem Abnormality:</h4><p style="background: var(--bg-input); padding: 0.85rem; border-radius: var(--radius-md); font-size: 0.9rem; line-height: 1.6;">${escapeHtml(item.problem || 'Tidak ada deskripsi')}</p></div><div><h4 style="margin-bottom: 0.4rem; color: var(--primary);">Countermeasure / Tindakan Perbaikan:</h4><p style="background: var(--primary-light); color: var(--text-main); padding: 0.85rem; border-radius: var(--radius-md); font-size: 0.9rem; line-height: 1.6;">${escapeHtml(item.countermeasure || 'Belum diisi')}</p></div>`;
   modal.classList.add('active'); if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -413,7 +446,7 @@ function openShareModal() {
   const modal = document.getElementById('share-modal');
   const input = document.getElementById('share-url-input');
   const qrImg = document.getElementById('share-qr-code');
-  const currentUrl = window.location.origin;
+  const currentUrl = window.location.origin + window.location.pathname;
   input.value = currentUrl;
   qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(currentUrl)}`;
   modal.classList.add('active'); if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -474,9 +507,20 @@ function resetFormToDefault() {
   }
 }
 
+// SEED SAMPLE DATA - POST to Supabase
 async function loadSampleData() {
+  const samples = [
+    { nama: "Budi Santoso", machine: "CNC Milling DMG Mori 01", problem: "Suara abnormal (clunking noise) pada Spindle Motor saat RPM > 3000.", tgl_temuan: "2026-08-01", ilustrasi: "", plan_perbaikan: "2026-08-02", part_butuh: "Bearing Spindle 7014 C/DB", type_part: "Mechanical Part", countermeasure: "Penggantian Bearing Spindle & Re-alignment Spindle shaft.", tgl_countermeasure: "2026-08-03", status: "Close" },
+    { nama: "Agus Setyawan", machine: "Stamping Press AIDA 200T", problem: "Kebocoran oli hidrolik pada Main Cylinder Seal Kit.", tgl_temuan: "2026-08-03", ilustrasi: "", plan_perbaikan: "2026-08-05", part_butuh: "Hydraulic Seal Kit NOK 150mm", type_part: "Hydraulic System", countermeasure: "Overhaul Cylinder unit & Ganti Seal Kit.", tgl_countermeasure: "2026-08-04", status: "Close" },
+    { nama: "Rian Pratama", machine: "Robot Welding Yaskawa L1", problem: "Nozzle Welding Torch cepat aus dan akumulasi Spatter tinggi.", tgl_temuan: "2026-08-05", ilustrasi: "", plan_perbaikan: "2026-08-06", part_butuh: "Copper Nozzle 16mm & Anti Spatter Spray", type_part: "Welding Torch", countermeasure: "Penggantian Nozzle & penambahan auto spatter cleaner.", tgl_countermeasure: "2026-08-06", status: "Close" },
+    { nama: "Eko Wijaya", machine: "Compressor Air Atlas Copco", problem: "Tekanan Udara Drop dari 7.5 Bar menjadi 5.8 Bar saat Line Assembly Full Operation.", tgl_temuan: "2026-08-07", ilustrasi: "", plan_perbaikan: "2026-08-10", part_butuh: "Air Filter Element & Intake Valve Maintenance Kit", type_part: "Pneumatic System", countermeasure: "Inspeksi kebocoran pipa utama & pembersihan air filter.", tgl_countermeasure: "", status: "On progress" }
+  ];
   try { 
-    const res = await fetch(API_BASE + '/api/seed', { method: 'POST' }); 
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/findings`, {
+      method: 'POST',
+      headers: HEADERS,
+      body: JSON.stringify(samples)
+    }); 
     if (!res.ok) throw new Error('HTTP ' + res.status);
     await syncFromBackend();
     showToast('Sample data temuan TPM dimasukkan & tersimpan!', 'success');
@@ -485,10 +529,17 @@ async function loadSampleData() {
   }
 }
 
+// CLEAR ALL DATA - DELETE from Supabase
 async function clearAllData() {
   if (confirm('Apakah Anda yakin ingin menghapus SELURUH data respons temuan?')) {
     try {
-      const res = await fetch(API_BASE + '/api/findings/all', { method: 'DELETE' });
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/findings?id=gt.0`, {
+        method: 'DELETE',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`
+        }
+      });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       await syncFromBackend();
       showToast('Seluruh data respons telah dikosongkan & disinkronisasi.', 'info');
