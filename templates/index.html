@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FormCraft TPM - Follow Up Temuan TPM & Cloud Dashboard</title>
+  <meta name="description" content="Aplikasi Form Follow Up Temuan TPM Interaktif terintegrasi dengan Real-time Database Synchronization">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Embedded Stylesheet (Self-Contained for tiiny.site & static web hosting) -->
+  <style>
+    /* ==========================================================================
+       FormCraft TPM - Complete Embedded Stylesheet
+       ========================================================================== */
+    :root {
+      --bg-main: #f4f6fb;
+      --bg-card: rgba(255, 255, 255, 0.85);
+      --bg-card-solid: #ffffff;
+      --bg-glass: rgba(255, 255, 255, 0.7);
+      --bg-sidebar: #ffffff;
+      --bg-input: #f8fafc;
+      --border-color: rgba(226, 232, 240, 0.8);
+      --border-focus: #3b82f6;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-light: #94a3b8;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --success: #10b981;
+      --success-light: #ecfdf5;
+      --warning: #f59e0b;
+      --warning-light: #fffbeb;
+      --danger: #ef4444;
+      --danger-light: #fef2f2;
+      --info: #06b6d4;
+      --info-light: #ecfeff;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+      --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      --shadow-glow: 0 0 20px rgba(37, 99, 235, 0.15);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --radius-full: 9999px;
+      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    [data-theme="dark"] {
+      --bg-main: #0b0f19;
+      --bg-card: rgba(18, 24, 38, 0.8);
+      --bg-card-solid: #121826;
+      --bg-glass: rgba(18, 24, 38, 0.75);
+      --bg-sidebar: #121826;
+      --bg-input: #1a2234;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-focus: #60a5fa;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-light: #64748b;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --primary-light: rgba(59, 130, 246, 0.15);
+      --success: #10b981;
+      --success-light: rgba(16, 185, 129, 0.15);
+      --warning: #f59e0b;
+      --warning-light: rgba(245, 158, 11, 0.15);
+      --danger: #f87171;
+      --danger-light: rgba(239, 68, 68, 0.15);
+      --info: #22d3ee;
+      --info-light: rgba(6, 182, 212, 0.15);
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+      --shadow-glow: 0 0 25px rgba(59, 130, 246, 0.25);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      line-height: 1.5;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      overflow-x: hidden;
+    }
+    h1, h2, h3, h4, h5, h6 { font-family: 'Outfit', 'Inter', sans-serif; font-weight: 700; letter-spacing: -0.02em; }
+    button, input, select, textarea { font-family: inherit; }
+    .app-container { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 280px;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-color);
+      display: flex; flex-direction: column;
+      padding: 1.5rem; position: fixed; height: 100vh; z-index: 100;
+      backdrop-filter: blur(12px); transition: var(--transition);
+    }
+    .brand { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem; }
+    .brand-icon {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center;
+      color: white; box-shadow: var(--shadow-glow);
+    }
+    .brand-text h2 { font-size: 1.25rem; background: linear-gradient(135deg, var(--text-main), var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .brand-text span { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+    .nav-menu { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
+    .nav-item {
+      display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem 1rem;
+      border-radius: var(--radius-md); color: var(--text-muted); font-weight: 500; cursor: pointer;
+      border: none; background: transparent; width: 100%; text-align: left; transition: var(--transition); font-size: 0.95rem;
+    }
+    .nav-item:hover { background: var(--primary-light); color: var(--primary); }
+    .nav-item.active { background: var(--primary); color: white; box-shadow: var(--shadow-glow); }
+    .badge-count { margin-left: auto; background: rgba(255, 255, 255, 0.25); color: inherit; padding: 0.15rem 0.6rem; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 600; }
+    .sidebar-footer { padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.75rem; }
+    .theme-toggle { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.85rem; background: var(--bg-input); border-radius: var(--radius-md); border: 1px solid var(--border-color); cursor: pointer; }
+    .main-content { margin-left: 280px; flex: 1; padding: 2rem 2.5rem; max-width: 1400px; }
+    .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .header-title h1 { font-size: 1.85rem; color: var(--text-main); }
+    .header-title p { color: var(--text-muted); font-size: 0.95rem; margin-top: 0.25rem; }
+    .header-actions { display: flex; gap: 0.75rem; align-items: center; }
+    .card { background: var(--bg-card); backdrop-filter: blur(16px); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-md); transition: var(--transition); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.7rem 1.3rem; border-radius: var(--radius-md); font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none; transition: var(--transition); }
+    .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn-secondary { background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border-color); }
+    .btn-secondary:hover { background: var(--border-color); }
+    .btn-danger { background: var(--danger-light); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
+    .btn-sm { padding: 0.45rem 0.85rem; font-size: 0.825rem; border-radius: var(--radius-sm); }
+    .form-group { margin-bottom: 1.5rem; }
+    .form-label { display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-main); margin-bottom: 0.5rem; }
+    .form-label .required { color: var(--danger); margin-left: 0.25rem; }
+    .form-input, .form-select, .form-textarea { width: 100%; padding: 0.8rem 1rem; background: var(--bg-input); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-main); font-size: 0.95rem; transition: var(--transition); }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--border-focus); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15); background: var(--bg-card-solid); }
+    .form-textarea { resize: vertical; min-height: 110px; }
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2rem; }
+    .metric-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: 1.25rem; }
+    .metric-icon { width: 52px; height: 52px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: white; }
+    .metric-icon.blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+    .metric-icon.red { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+    .metric-icon.yellow { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .metric-icon.green { background: linear-gradient(135deg, #10b981, #047857); }
+    .metric-info span { font-size: 0.825rem; color: var(--text-muted); font-weight: 500; }
+    .metric-info h3 { font-size: 1.6rem; color: var(--text-main); margin-top: 0.1rem; }
+    .table-container { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border-color); }
+    .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+    .data-table th { background: var(--bg-input); padding: 1rem 1.25rem; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+    .data-table td { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color); color: var(--text-main); vertical-align: middle; }
+    .badge { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.75rem; border-radius: var(--radius-full); font-size: 0.775rem; font-weight: 600; }
+    .badge-open { background: var(--danger-light); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-onprogress { background: var(--warning-light); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-closed { background: var(--success-light); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .builder-layout { display: grid; grid-template-columns: 280px 1fr 300px; gap: 1.5rem; }
+    .elements-toolbox, .field-inspector { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem; height: fit-content; }
+    .toolbox-title { font-size: 1rem; margin-bottom: 1rem; color: var(--text-main); padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); }
+    .tool-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 0.9rem; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: 0.6rem; cursor: pointer; font-size: 0.875rem; font-weight: 500; }
+    .canvas-area { background: var(--bg-card); border: 2px dashed var(--border-color); border-radius: var(--radius-lg); padding: 2rem; min-height: 500px; }
+    .canvas-field { position: relative; background: var(--bg-card-solid); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1rem; }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: var(--transition); }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    .modal-card { background: var(--bg-card-solid); border: 1px solid var(--border-color); border-radius: var(--radius-lg); width: 90%; max-width: 650px; max-height: 90vh; overflow-y: auto; padding: 2rem; box-shadow: var(--shadow-lg); transform: translateY(20px); transition: var(--transition); }
+    .modal-overlay.active .modal-card { transform: translateY(0); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); }
+    .toast-container { position: fixed; bottom: 2rem; right: 2rem; display: flex; flex-direction: column; gap: 0.75rem; z-index: 1100; }
+    .toast { background: var(--bg-card-solid); border: 1px solid var(--border-color); border-left: 4px solid var(--primary); border-radius: var(--radius-md); padding: 1rem 1.25rem; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 0.85rem; min-width: 300px; }
+    .mobile-nav-bar { display: none; }
+    .mobile-card-list { display: none; }
+    @media (max-width: 1024px) { .builder-layout { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main-content { margin-left: 0; padding: 1.25rem 1rem 90px 1rem; max-width: 100%; }
+      .top-header { flex-direction: column; align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem; background: var(--bg-card); padding: 1rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); }
+      .header-title h1 { font-size: 1.35rem; }
+      .header-title p { font-size: 0.825rem; }
+      .header-actions { width: 100%; justify-content: space-between; flex-wrap: wrap; }
+      .header-actions .btn { flex: 1; font-size: 0.8rem; padding: 0.6rem 0.5rem; }
+      .metrics-grid { grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1.25rem; }
+      .metric-card { padding: 1rem; gap: 0.75rem; flex-direction: column; align-items: flex-start; }
+      .metric-icon { width: 40px; height: 40px; }
+      .metric-info h3 { font-size: 1.35rem; }
+      .mobile-nav-bar { display: flex; position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background: var(--bg-sidebar); border-top: 1px solid var(--border-color); box-shadow: 0 -4px 20px rgba(0,0,0,0.1); z-index: 1000; backdrop-filter: blur(12px); justify-content: space-around; align-items: center; padding: 0 0.5rem; }
+      .mobile-nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.25rem; background: none; border: none; color: var(--text-muted); font-size: 0.7rem; font-weight: 600; cursor: pointer; flex: 1; height: 100%; }
+      .mobile-nav-item.active { color: var(--primary); }
+      .table-container { display: none; }
+      .mobile-card-list { display: flex; flex-direction: column; gap: 1rem; }
+      .mobile-response-card { background: var(--bg-card-solid); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.1rem; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 0.75rem; }
+      .mobile-card-header { display: flex; justify-content: space-between; align-items: center; }
+      .mobile-card-title { font-weight: 700; font-size: 1rem; color: var(--text-main); }
+      .mobile-card-detail { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
+      .form-input, .form-select, .form-textarea { font-size: 16px !important; }
+      .card { padding: 1.25rem; }
+      .toast-container { bottom: 80px; right: 1rem; left: 1rem; }
+      .toast { min-width: unset; width: 100%; }
+      .modal-card { width: 95%; padding: 1.25rem; }
+      .form-actions-bar { flex-direction: column-reverse !important; width: 100% !important; gap: 0.75rem !important; margin-bottom: 2.5rem !important; }
+      .form-actions-bar .btn { width: 100% !important; min-height: 52px !important; font-size: 1rem !important; justify-content: center !important; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">
+          <i data-lucide="wrench"></i>
+        </div>
+        <div class="brand-text">
+          <h2>TPM FollowUp</h2>
+          <span>Dashboard & Form</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <button class="nav-item active" onclick="switchTab('filler')" id="nav-filler">
+          <i data-lucide="file-text"></i>
+          <span>Isi Form Temuan</span>
+        </button>
+
+        <button class="nav-item" onclick="switchTab('dashboard')" id="nav-dashboard">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Web Dashboard</span>
+          <span class="badge-count" id="badge-total-count">0</span>
+        </button>
+
+        <button class="nav-item" onclick="switchTab('builder')" id="nav-builder">
+          <i data-lucide="sliders"></i>
+          <span>Form Builder Studio</span>
+        </button>
+
+        <button class="nav-item" onclick="switchTab('settings')" id="nav-settings">
+          <i data-lucide="settings"></i>
+          <span>Pengaturan & Demo</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="theme-toggle" onclick="toggleTheme()">
+          <span>Mode Tampilan</span>
+          <i data-lucide="moon" id="theme-icon"></i>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Body -->
+    <main class="main-content">
+      
+      <!-- TOP HEADER -->
+      <header class="top-header">
+        <div class="header-title">
+          <h1 id="page-title">Form Follow Up Temuan TPM</h1>
+          <p id="page-subtitle">Pencatatan abnormality mesin & tindakan perbaikan cepat</p>
+        </div>
+
+        <div class="header-actions">
+          <span id="cloud-sync-badge" class="badge badge-closed"><i data-lucide="cloud"></i> 🟢 Database Synced</span>
+          <button class="btn btn-secondary btn-sm" onclick="syncFromBackend()" id="btn-sync-cloud" title="Sync Real-time Database Data">
+            <i data-lucide="refresh-cw"></i> Sync Data
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="openShareModal()">
+            <i data-lucide="share-2"></i> Bagikan Form
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="switchTab('dashboard')">
+            <i data-lucide="eye"></i> Lihat Dashboard
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="loadSampleData()">
+            <i data-lucide="sparkles"></i> Load Data Sample
+          </button>
+        </div>
+      </header>
+
+      <!-- TAB 1: FORM FILLER / ISIAN FORM -->
+      <section id="tab-filler" class="tab-page">
+        <div class="card" style="max-width: 850px; margin: 0 auto;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+            <div>
+              <h2 style="font-size: 1.4rem; color: var(--primary);">Form Input Temuan Machine TPM</h2>
+              <p style="font-size: 0.875rem; color: var(--text-muted);">Lengkapi data temuan di bawah ini untuk mengirim laporan ke dashboard.</p>
+            </div>
+            <span class="badge badge-open"><i data-lucide="alert-triangle"></i> TPM Abnormality</span>
+          </div>
+
+          <form id="tpm-submit-form" onsubmit="handleFormSubmit(event)">
+            <div id="dynamic-form-fields">
+              <!-- Rendered dynamically by JavaScript -->
+            </div>
+
+            <div class="form-actions-bar" style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
+              <button type="reset" class="btn btn-secondary">
+                <i data-lucide="rotate-ccw"></i> Reset Form
+              </button>
+              <button type="button" id="btn-submit-tpm" onclick="submitTpmForm()" class="btn btn-primary btn-lg" style="touch-action: manipulation; -webkit-tap-highlight-color: transparent;">
+                <i data-lucide="send"></i> Kirim Ke Web Dashboard
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- TAB 2: WEB DASHBOARD MONITORING -->
+      <section id="tab-dashboard" class="tab-page" style="display: none;">
+        <!-- Metrics Summary Cards -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-icon blue">
+              <i data-lucide="file-check"></i>
+            </div>
+            <div class="metric-info">
+              <span>Total Temuan</span>
+              <h3 id="stat-total">0</h3>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon yellow">
+              <i data-lucide="clock"></i>
+            </div>
+            <div class="metric-info">
+              <span>Status On Progress</span>
+              <h3 id="stat-progress">0</h3>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon green">
+              <i data-lucide="check-circle-2"></i>
+            </div>
+            <div class="metric-info">
+              <span>Status Closed</span>
+              <h3 id="stat-closed">0</h3>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon red">
+              <i data-lucide="bar-chart-3"></i>
+            </div>
+            <div class="metric-info">
+              <span>Completion Rate</span>
+              <h3 id="stat-rate">0%</h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="card" style="margin-bottom: 1.5rem; padding: 1.25rem;">
+          <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between;">
+            <div style="display: flex; gap: 1rem; flex: 1; min-width: 280px;">
+              <div style="position: relative; flex: 1;">
+                <input type="text" id="search-input" class="form-input" placeholder="Cari berdasarkan nama, mesin, atau problem..." oninput="filterTable()">
+              </div>
+
+              <select id="status-filter" class="form-select" style="width: 200px;" onchange="filterTable()">
+                <option value="ALL">Semua Status</option>
+                <option value="On Progress">On Progress</option>
+                <option value="Closed">Close / Closed</option>
+              </select>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+              <button class="btn btn-danger btn-sm" id="btn-delete-selected" style="display: none;" onclick="deleteSelectedResponses()">
+                <i data-lucide="trash-2"></i> Hapus Terpilih (<span id="selected-count">0</span>)
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="exportCSV()">
+                <i data-lucide="download"></i> Export CSV (Excel)
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="exportJSON()">
+                <i data-lucide="file-code"></i> Export JSON
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data Table (Desktop View) -->
+        <div class="card" style="padding: 0; overflow: hidden;">
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width: 40px; text-align: center;">
+                    <input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this)" title="Pilih Semua">
+                  </th>
+                  <th>No</th>
+                  <th>Tanggal</th>
+                  <th>Nama Pelapor</th>
+                  <th>Nama Machine</th>
+                  <th>Temuan / Problem</th>
+                  <th>Ilustrasi</th>
+                  <th>Countermeasure</th>
+                  <th>Tgl Countermeasure</th>
+                  <th>Status</th>
+                  <th style="text-align: center; min-width: 110px;">Aksi / Hapus</th>
+                </tr>
+              </thead>
+              <tbody id="response-table-body">
+                <!-- Rendered by JavaScript -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Mobile Response Cards (Mobile View < 768px) -->
+          <div id="mobile-response-cards" class="mobile-card-list" style="padding: 1rem;">
+            <!-- Rendered by JavaScript for Mobile -->
+          </div>
+
+          <div id="empty-state" style="display: none; text-align: center; padding: 3rem 1rem;">
+            <i data-lucide="inbox" style="width: 48px; height: 48px; color: var(--text-light); margin-bottom: 1rem;"></i>
+            <h3 style="color: var(--text-muted);">Belum ada data temuan TPM</h3>
+            <p style="font-size: 0.875rem; color: var(--text-light); margin-top: 0.25rem;">Isi form atau klik "Load Data Sample" untuk mencoba dashboard.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: VISUAL FORM BUILDER STUDIO -->
+      <section id="tab-builder" class="tab-page" style="display: none;">
+        <div class="builder-layout">
+          <!-- Toolbox -->
+          <div class="elements-toolbox">
+            <h3 class="toolbox-title">Elemen Field</h3>
+            <div class="tool-item" onclick="addFieldToForm('text')">
+              <i data-lucide="type"></i> Teks Singkat (Text)
+            </div>
+            <div class="tool-item" onclick="addFieldToForm('textarea')">
+              <i data-lucide="align-left"></i> Paragraf (Textarea)
+            </div>
+            <div class="tool-item" onclick="addFieldToForm('date')">
+              <i data-lucide="calendar"></i> Tanggal (Datepicker)
+            </div>
+            <div class="tool-item" onclick="addFieldToForm('select')">
+              <i data-lucide="chevron-down"></i> Pilihan Status / Dropdown
+            </div>
+          </div>
+
+          <!-- Canvas Workspace -->
+          <div class="canvas-area">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+              <h3>Canvas Struktur Form TPM</h3>
+              <button class="btn btn-sm btn-primary" onclick="resetFormToDefault()">
+                <i data-lucide="rotate-ccw"></i> Reset ke Preset Default TPM
+              </button>
+            </div>
+            <div id="builder-canvas-fields">
+              <!-- Rendered canvas fields -->
+            </div>
+          </div>
+
+          <!-- Inspector -->
+          <div class="field-inspector">
+            <h3 class="toolbox-title">Pengaturan Form</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+              Setiap perubahan pada form builder akan langsung memperbarui tampilan **Form Input Temuan**.
+            </p>
+            <div class="form-group">
+              <label class="form-label">Judul Form</label>
+              <input type="text" id="builder-form-title" class="form-input" value="Form Follow Up Temuan TPM" oninput="updateFormMeta()">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: SETTINGS & DATA DEMO -->
+      <section id="tab-settings" class="tab-page" style="display: none;">
+        <div class="card" style="max-width: 700px;">
+          <h3 style="margin-bottom: 1rem;">Pengaturan Sistem & Data Demo</h3>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+            Kelola data laporan temuan TPM atau muat data sampel bawaan untuk pengujian dashboard.
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: var(--bg-input); border-radius: var(--radius-md);">
+              <div>
+                <h4 style="font-size: 0.95rem;">Muat Data Sampel Demo</h4>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">Isi dashboard dengan contoh data temuan TPM nyata.</p>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="loadSampleData()">
+                <i data-lucide="database"></i> Load Sample
+              </button>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: var(--danger-light); border-radius: var(--radius-md); border: 1px solid rgba(239, 68, 68, 0.2);">
+              <div>
+                <h4 style="font-size: 0.95rem; color: var(--danger);">Hapus Semua Data Respons</h4>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">Mengosongkan seluruh laporan temuan dari penyimpanan lokal & database server.</p>
+              </div>
+              <button class="btn btn-danger btn-sm" onclick="clearAllData()">
+                <i data-lucide="trash-2"></i> Hapus Semua Data
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MOBILE BOTTOM NAVIGATION BAR -->
+  <nav class="mobile-nav-bar">
+    <button class="mobile-nav-item active" onclick="switchTab('filler')" id="mobile-nav-filler">
+      <i data-lucide="file-text"></i>
+      <span>Form</span>
+    </button>
+
+    <button class="mobile-nav-item" onclick="switchTab('dashboard')" id="mobile-nav-dashboard">
+      <i data-lucide="layout-dashboard"></i>
+      <span>Dashboard</span>
+    </button>
+
+    <button class="mobile-nav-item" onclick="switchTab('builder')" id="mobile-nav-builder">
+      <i data-lucide="sliders"></i>
+      <span>Builder</span>
+    </button>
+
+    <button class="mobile-nav-item" onclick="toggleTheme()" id="mobile-nav-theme">
+      <i data-lucide="moon"></i>
+      <span>Tema</span>
+    </button>
+  </nav>
+
+  <!-- MODAL DETAIL TEMUAN TPM -->
+  <div class="modal-overlay" id="detail-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h2 style="font-size: 1.25rem;" id="modal-title">Detail Temuan TPM</h2>
+          <span id="modal-date" style="font-size: 0.8rem; color: var(--text-muted);"></span>
+        </div>
+        <button class="action-btn" onclick="closeModal()">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div id="modal-body-content" style="display: flex; flex-direction: column; gap: 1rem;">
+        <!-- Filled by JS -->
+      </div>
+
+      <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <button class="btn btn-danger btn-sm" id="btn-modal-delete" onclick="deleteFromModal()">
+          <i data-lucide="trash-2"></i> Hapus Laporan
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="window.print()">
+          <i data-lucide="printer"></i> Cetak Laporan
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="closeModal()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL SHARE FORM & QR CODE -->
+  <div class="modal-overlay" id="share-modal">
+    <div class="modal-card" style="max-width: 480px; text-align: center;">
+      <div class="modal-header">
+        <h2 style="font-size: 1.25rem;">Bagikan Form Temuan TPM</h2>
+        <button class="action-btn" onclick="closeShareModal()">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div style="padding: 0.5rem 0; display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+        <p style="font-size: 0.875rem; color: var(--text-muted);">
+          Scan QR Code di bawah ini untuk membuka Form Input Temuan dari Smartphone, atau salin link di bawah ini.
+        </p>
+
+        <div style="background: white; padding: 1rem; border-radius: var(--radius-md); border: 2px dashed var(--primary); display: inline-block;">
+          <img id="share-qr-code" src="" alt="QR Code Form" style="width: 170px; height: 170px;">
+        </div>
+
+        <div style="width: 100%; display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+          <input type="text" id="share-url-input" class="form-input" readonly style="font-size: 0.85rem;">
+          <button class="btn btn-primary" onclick="copyShareUrl()">
+            <i data-lucide="copy"></i> Copy
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- JavaScript Script Engine -->
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
+
