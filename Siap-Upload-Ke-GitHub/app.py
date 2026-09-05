@@ -33,10 +33,8 @@ if db_url:
     if db_url.startswith("postgres://"):
         db_url = db_url.replace("postgres://", "postgresql://", 1)
 else:
-    if os.getenv("VERCEL") or os.environ.get("VERCEL_ENV"):
-        db_url = "sqlite:////tmp/tpm_database.db"
-    else:
-        db_url = "sqlite:///" + str(BASE_DIR / "tpm_database.db")
+    print("WARNING: DATABASE_URL not set. Falling back to local SQLite database.")
+    db_url = "sqlite:///" + str(BASE_DIR / "tpm_database.db")
 
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
