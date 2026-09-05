@@ -121,7 +121,7 @@ def create_finding():
 
 @app.route("/api/findings/<finding_id>/status", methods=["PUT"])
 def update_status(finding_id):
-    finding = Finding.query.get(finding_id)
+    finding = db.session.get(Finding, finding_id)
     if not finding:
         return jsonify({"error": "Not found"}), 404
     
@@ -132,7 +132,7 @@ def update_status(finding_id):
 
 @app.route("/api/findings/<finding_id>", methods=["DELETE"])
 def delete_finding(finding_id):
-    finding = Finding.query.get(finding_id)
+    finding = db.session.get(Finding, finding_id)
     if not finding:
         return jsonify({"error": "Not found"}), 404
     
