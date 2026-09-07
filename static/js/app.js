@@ -965,7 +965,7 @@ function renderTableData(dataList) {
         <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(item.countermeasure || '-')}</td>
         <td>${formatDate(item.tgl_countermeasure)}</td>
         <td>
-          <select class="form-select" style="padding: 0.25rem 0.6rem; font-size: 0.8rem; font-weight: 600; width: auto;" onchange="updateItemStatus('${item.id}', this.value)">
+          <select class="form-select" style="padding: 0.25rem 0.6rem; font-size: 0.8rem; font-weight: 600; width: auto;" onchange="handleStatusChangeWithAuth('${item.id}', this.value, '${escapeHtml(item.status || 'On progress')}', this)">
             <option value="On progress" ${!isClosed ? 'selected' : ''}>🟡 On progress</option>
             <option value="Close" ${isClosed ? 'selected' : ''}>🟢 Close</option>
           </select>
@@ -986,7 +986,7 @@ function renderTableData(dataList) {
             <span class="badge" style="background: var(--primary-light); color: var(--primary); font-weight: 700; font-size: 0.7rem; margin-right: 0.35rem;">${escapeHtml(item.line || 'Unassigned')}</span>
             <span class="mobile-card-title">${escapeHtml(item.machine || 'Machine')}</span>
           </div>
-          <select class="form-select" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; width: auto;" onchange="updateItemStatus('${item.id}', this.value)">
+          <select class="form-select" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; width: auto;" onchange="handleStatusChangeWithAuth('${item.id}', this.value, '${escapeHtml(item.status || 'On progress')}', this)">
             <option value="On progress" ${!isClosed ? 'selected' : ''}>🟡 On progress</option>
             <option value="Close" ${isClosed ? 'selected' : ''}>🟢 Close</option>
           </select>
@@ -1024,33 +1024,136 @@ function updateSelectedCount() {
   if (btnDelete) btnDelete.style.display = count > 0 ? 'inline-flex' : 'none';
 }
 
+// ADMIN PASSWORD AUTHENTICATION SYSTEM (Password: "Toyota123")
+let adminAuthSuccessCallback = null;
+let adminAuthCancelCallback = null;
+
+function requireAdminPassword(onSuccess, onCancel = null) {
+  adminAuthSuccessCallback = onSuccess;
+  adminAuthCancelCallback = onCancel;
+  
+  const modal = document.getElementById('admin-auth-modal');
+  const input = document.getElementById('admin-password-input');
+  const errorEl = document.getElementById('admin-password-error');
+  
+  if (input) input.value = '';
+  if (errorEl) errorEl.style.display = 'none';
+  
+  if (modal) {
+    modal.classList.add('active');
+    setTimeout(() => { if (input) input.focus(); }, 100);
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  } else {
+    const pwd = prompt('Masukkan Password Admin (Password: Toyota123):');
+    if (pwd === 'Toyota123') {
+      if (typeof onSuccess === 'function') onSuccess();
+    } else {
+      if (pwd !== null) showToast('❌ Password salah! Akses ditolak.', 'error');
+      if (typeof onCancel === 'function') onCancel();
+    }
+  }
+}
+
+function submitAdminPassword() {
+  const input = document.getElementById('admin-password-input');
+  const errorEl = document.getElementById('admin-password-error');
+  const pwd = input ? input.value : '';
+
+  if (pwd === 'Toyota123') {
+    closeAdminAuthModal(true);
+    showToast('🔓 Verifikasi password berhasil!', 'success');
+    if (typeof adminAuthSuccessCallback === 'function') {
+      const callback = adminAuthSuccessCallback;
+      adminAuthSuccessCallback = null;
+      adminAuthCancelCallback = null;
+      callback();
+    }
+  } else {
+    if (errorEl) {
+      errorEl.style.display = 'block';
+      errorEl.textContent = '❌ Password salah! Silakan coba lagi.';
+    }
+    showToast('❌ Password salah! Akses ditolak.', 'error');
+    if (input) {
+      input.value = '';
+      input.focus();
+    }
+  }
+}
+
+function closeAdminAuthModal(isSuccess = false) {
+  const modal = document.getElementById('admin-auth-modal');
+  if (modal) modal.classList.remove('active');
+  
+  if (!isSuccess) {
+    if (typeof adminAuthCancelCallback === 'function') {
+      const cancelCb = adminAuthCancelCallback;
+      adminAuthSuccessCallback = null;
+      adminAuthCancelCallback = null;
+      cancelCb();
+    } else {
+      adminAuthSuccessCallback = null;
+      adminAuthCancelCallback = null;
+    }
+  }
+}
+
+function toggleAdminPasswordVisibility() {
+  const input = document.getElementById('admin-password-input');
+  const eyeIcon = document.getElementById('admin-pwd-eye-icon');
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    if (eyeIcon) eyeIcon.setAttribute('data-lucide', 'eye-off');
+  } else {
+    input.type = 'password';
+    if (eyeIcon) eyeIcon.setAttribute('data-lucide', 'eye');
+  }
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function handleStatusChangeWithAuth(id, newStatus, currentStatus, selectEl) {
+  if (newStatus === currentStatus) return;
+  requireAdminPassword(
+    () => {
+      updateItemStatus(id, newStatus);
+    },
+    () => {
+      if (selectEl) selectEl.value = currentStatus;
+      showToast('⚠️ Update status dibatalkan (Password tidak sesuai).', 'warning');
+    }
+  );
+}
+
 async function deleteSelectedResponses() {
   const selected = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
   if (selected.length === 0) return;
-  if (!confirm(`Apakah Anda yakin ingin menghapus ${selected.length} data temuan yang dipilih?`)) return;
   
-  let deletedCount = 0;
-  for (const id of selected) {
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/findings?id=eq.${id}`, {
-        method: 'DELETE',
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`
-        }
-      });
-      if (res.ok) deletedCount++;
-    } catch (e) {
-      console.error(e);
+  requireAdminPassword(async () => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus ${selected.length} data temuan yang dipilih?`)) return;
+    let deletedCount = 0;
+    for (const id of selected) {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/findings?id=eq.${id}`, {
+          method: 'DELETE',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`
+          }
+        });
+        if (res.ok) deletedCount++;
+      } catch (e) {
+        console.error(e);
+      }
     }
-  }
-  
-  await syncFromBackend();
-  if (deletedCount > 0) {
-    showToast(`${deletedCount} data temuan berhasil dihapus`, 'info');
-  } else {
-    showToast(`❌ Gagal menghapus data.`, 'error');
-  }
+    
+    await syncFromBackend();
+    if (deletedCount > 0) {
+      showToast(`${deletedCount} data temuan berhasil dihapus`, 'info');
+    } else {
+      showToast(`❌ Gagal menghapus data.`, 'error');
+    }
+  });
 }
 
 function deleteFromModal() {
@@ -1094,7 +1197,13 @@ function filterTable() {
 }
 
 // DELETE single item from Supabase
-async function deleteResponse(id) {
+async function deleteResponse(id, isAuthBypassed = false) {
+  if (!isAuthBypassed) {
+    requireAdminPassword(() => {
+      deleteResponse(id, true);
+    });
+    return;
+  }
   if (!confirm('Hapus data temuan ini?')) return;
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/findings?id=eq.${id}`, {
@@ -1112,7 +1221,13 @@ async function deleteResponse(id) {
   }
 }
 
-function viewDetail(id) {
+function viewDetail(id, isAuthBypassed = false) {
+  if (!isAuthBypassed) {
+    requireAdminPassword(() => {
+      viewDetail(id, true);
+    });
+    return;
+  }
   const item = responses.find(r => r.id == id); if (!item) return;
   activeDetailId = id;
   const modal = document.getElementById('detail-modal');
@@ -1220,22 +1335,24 @@ async function loadSampleData() {
 
 // CLEAR ALL DATA - DELETE from Supabase
 async function clearAllData() {
-  if (confirm('Apakah Anda yakin ingin menghapus SELURUH data respons temuan?')) {
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/findings?id=gt.0`, {
-        method: 'DELETE',
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`
-        }
-      });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      await syncFromBackend();
-      showToast('Seluruh data respons telah dikosongkan & disinkronisasi.', 'info');
-    } catch (err) {
-      showToast('❌ Gagal menghapus data: ' + err.message, 'error');
+  requireAdminPassword(async () => {
+    if (confirm('Apakah Anda yakin ingin menghapus SELURUH data respons temuan?')) {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/findings?id=gt.0`, {
+          method: 'DELETE',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`
+          }
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        await syncFromBackend();
+        showToast('Seluruh data respons telah dikosongkan & disinkronisasi.', 'info');
+      } catch (err) {
+        showToast('❌ Gagal menghapus data: ' + err.message, 'error');
+      }
     }
-  }
+  });
 }
 
 function formatDate(dateStr) {
