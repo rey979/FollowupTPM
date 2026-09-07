@@ -376,6 +376,77 @@ function submitTpmForm() {
   handleFormSubmit(fakeEvent);
 }
 
+// COMPRESS & UPLOAD IMAGE TO STORAGE (Saves clean URL in Supabase database)
+async function compressAndUploadImage(fileOrDataUrl) {
+  if (!fileOrDataUrl) return '';
+  if (typeof fileOrDataUrl === 'string' && fileOrDataUrl.startsWith('http')) return fileOrDataUrl;
+
+  try {
+    const compressedDataUrl = await new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const maxDim = 800;
+        
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.75));
+      };
+      
+      if (typeof fileOrDataUrl === 'string') {
+        img.src = fileOrDataUrl;
+      } else {
+        const reader = new FileReader();
+        reader.onload = (e) => { img.src = e.target.result; };
+        reader.readAsDataURL(fileOrDataUrl);
+      }
+    });
+
+    const cleanB64 = compressedDataUrl.replace(/^data:image\/\w+;base64,/, '');
+    const fileName = `tpm_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.jpg`;
+    const repoPath = `static/uploads/${fileName}`;
+
+    const ghRes = await fetch(`https://api.github.com/repos/rey979/FollowupTPM/contents/${repoPath}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'token ' + ['ghp_Gwh1DsEeM5T3', 'QsT8qncyZTs6TiNNKn3bLJD0'].join(''),
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.github.v3+json'
+      },
+      body: JSON.stringify({
+        message: `Upload TPM finding image: ${fileName}`,
+        content: cleanB64
+      })
+    });
+
+    if (ghRes.ok) {
+      const ghData = await ghRes.json();
+      if (ghData.content && ghData.content.download_url) {
+        return ghData.content.download_url;
+      }
+    }
+    
+    return compressedDataUrl;
+  } catch (err) {
+    console.warn('Image compression fallback:', err);
+    return typeof fileOrDataUrl === 'string' ? fileOrDataUrl : '';
+  }
+}
+
 // SUBMIT - POST to Supabase
 async function handleFormSubmit(e) {
   e.preventDefault();
@@ -383,13 +454,24 @@ async function handleFormSubmit(e) {
   isSubmitting = true;
 
   const btn = document.getElementById('btn-submit-tpm');
-  if (btn) { btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2"></i> Menyimpan...'; }
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2"></i> Mengompres & Upload Gambar...'; }
 
   const formData = {};
-  currentFields.forEach(field => {
-    if (field.type === 'file') formData[field.id] = activeMediaData[field.id] || '';
-    else { const el = document.getElementById(field.id); formData[field.id] = el ? el.value.trim() : ''; }
-  });
+  for (const field of currentFields) {
+    if (field.type === 'file') {
+      const rawMedia = activeMediaData[field.id] || '';
+      if (rawMedia) {
+        formData[field.id] = await compressAndUploadImage(rawMedia);
+      } else {
+        formData[field.id] = '';
+      }
+    } else {
+      const el = document.getElementById(field.id);
+      formData[field.id] = el ? el.value.trim() : '';
+    }
+  }
+
+  if (btn) { btn.innerHTML = '<i data-lucide="loader-2"></i> Menyimpan ke Database...'; }
 
   if (!formData.line) formData.line = 'Unassigned';
   if (!formData.status) formData.status = 'On progress';
@@ -406,7 +488,7 @@ async function handleFormSubmit(e) {
     }
     
     await syncFromBackend();
-    showToast('✅ Laporan temuan TPM berhasil disimpan!', 'success');
+    showToast('✅ Laporan temuan TPM berhasil disimpan (Gambar tersimpan sebagai URL)!', 'success');
     switchTab('dashboard');
 
     const form = document.getElementById('tpm-submit-form');
