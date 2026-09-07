@@ -456,9 +456,8 @@ function renderDashboard() {
   
   if (overdueCount > 0) {
     if (judgementAvatarImg) {
-      judgementAvatarImg.src = 'static/img/chibi_ng.jpg';
-      judgementAvatarImg.style.borderColor = 'var(--danger)';
-      judgementAvatarImg.style.boxShadow = '0 0 14px rgba(239, 68, 68, 0.45)';
+      judgementAvatarImg.src = 'static/img/chibi_ng.png';
+      judgementAvatarImg.style.filter = 'drop-shadow(0 4px 10px rgba(239, 68, 68, 0.55))';
     }
     if (judgementStatusBadge) {
       judgementStatusBadge.style.color = 'var(--danger)';
@@ -467,9 +466,8 @@ function renderDashboard() {
     if (judgementMessage) judgementMessage.textContent = `Ada ${overdueCount} temuan terhambat (> 3 bulan)`;
   } else {
     if (judgementAvatarImg) {
-      judgementAvatarImg.src = 'static/img/chibi_ok.jpg';
-      judgementAvatarImg.style.borderColor = 'var(--success)';
-      judgementAvatarImg.style.boxShadow = '0 0 14px rgba(16, 185, 129, 0.45)';
+      judgementAvatarImg.src = 'static/img/chibi_ok.png';
+      judgementAvatarImg.style.filter = 'drop-shadow(0 4px 10px rgba(16, 185, 129, 0.55))';
     }
     if (judgementStatusBadge) {
       judgementStatusBadge.style.color = 'var(--success)';
