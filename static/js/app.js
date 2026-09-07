@@ -500,6 +500,16 @@ function renderDashboard() {
   renderTableData(filteredList);
 }
 
+const LINE_PIC_MAP = {
+  'Finishing': { name: 'Sujadmiko', picKey: 'PIC_SUJADMIKO', file: 'static/img/pic_sujadmiko.png' },
+  'Core Making': { name: 'Haris HD', picKey: 'PIC_HARIS_HD', file: 'static/img/pic_haris_hd.png' },
+  'Melting': { name: 'Alim S', picKey: 'PIC_ALIM_S', file: 'static/img/pic_alim_s.png' },
+  'Moulding': { name: 'Junaedi', picKey: 'PIC_JUNAEDI', file: 'static/img/pic_junaedi.png' },
+  'Sand Preparation': { name: 'M. Iqbal T', picKey: 'PIC_M_IQBAL_T', file: 'static/img/pic_m_iqbal_t.png' },
+  'Die Press': { name: 'Alim S', picKey: 'PIC_ALIM_S', file: 'static/img/pic_alim_s.png' },
+  'RCS': { name: 'Haris HD', picKey: 'PIC_HARIS_HD', file: 'static/img/pic_haris_hd.png' }
+};
+
 // INDIVIDUAL LINE CHARTS GRID MANAGER
 function renderIndividualLineCharts(fyList) {
   const gridContainer = document.getElementById('individual-line-charts-grid');
@@ -519,6 +529,7 @@ function renderIndividualLineCharts(fyList) {
   OFFICIAL_LINES.forEach(line => {
     const slug = line.toLowerCase().replace(/[^a-z0-9]/g, '-');
     let cardEl = document.getElementById(`line-card-${slug}`);
+    const picInfo = LINE_PIC_MAP[line] || { name: 'PIC Line', picKey: 'PIC_ALIM_S', file: 'static/img/pic_alim_s.png' };
     
     // Dynamically build card shell if not present
     if (!cardEl) {
@@ -530,11 +541,34 @@ function renderIndividualLineCharts(fyList) {
       cardEl.style.border = '1px solid var(--border-color)';
       
       cardEl.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
-          <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--text-main); font-family: 'Outfit', sans-serif; text-transform: uppercase; letter-spacing: 0.5px;">${line}</h4>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+          <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--text-main); font-family: 'Outfit', sans-serif; font-style: italic; letter-spacing: 0.5px;">${line} Line</h4>
           <span id="line-badge-${slug}" class="badge badge-closed" style="font-size: 0.75rem;">0% Closed</span>
         </div>
-        <div style="position: relative; height: 190px; width: 100%;">
+
+        <!-- PIC Info & Stat Cards Header -->
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; background: var(--bg-input); padding: 0.65rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 0.75rem;">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 0.25rem;">
+            <img id="pic-img-${slug}" src="${picInfo.file}" onerror="if(typeof ${picInfo.picKey}!=='undefined')this.src=${picInfo.picKey}" alt="${picInfo.name}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); box-shadow: var(--shadow-sm);">
+            <span style="background: #1e3a8a; color: #ffffff; font-weight: 700; font-size: 0.725rem; padding: 0.15rem 0.55rem; border-radius: var(--radius-full); font-family: 'Outfit', sans-serif; text-align: center; white-space: nowrap;">${picInfo.name}</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.25rem; flex: 1;">
+            <div style="display: flex; justify-content: space-between; background: var(--bg-card-solid); padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.75rem; border: 1px solid var(--border-color);">
+              <span style="color: var(--text-muted); font-weight: 600;">Total:</span>
+              <span id="pic-stat-total-${slug}" style="font-weight: 800; color: var(--text-main);">0 find</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; background: var(--bg-card-solid); padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.75rem; border: 1px solid var(--border-color);">
+              <span style="color: var(--text-muted); font-weight: 600;">Solve:</span>
+              <span id="pic-stat-closed-${slug}" style="font-weight: 800; color: var(--success);">0 solve</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; background: var(--bg-card-solid); padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.75rem; border: 1px solid var(--border-color);">
+              <span style="color: var(--text-muted); font-weight: 600;">Progress:</span>
+              <span id="pic-stat-rate-${slug}" style="font-weight: 800; color: var(--primary);">0 %</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="position: relative; height: 165px; width: 100%;">
           <canvas id="chart-canvas-${slug}"></canvas>
         </div>
       `;
@@ -551,6 +585,14 @@ function renderIndividualLineCharts(fyList) {
       badgeEl.textContent = lineTotal > 0 ? `${lineRate}% Closed (${lineClosed}/${lineTotal})` : 'No Data';
       badgeEl.className = lineTotal === 0 ? 'badge badge-onprogress' : (lineRate >= 80 ? 'badge badge-closed' : 'badge badge-open');
     }
+
+    // Update PIC Stat elements
+    const picStatTotal = document.getElementById(`pic-stat-total-${slug}`);
+    if (picStatTotal) picStatTotal.textContent = `${lineTotal} find`;
+    const picStatClosed = document.getElementById(`pic-stat-closed-${slug}`);
+    if (picStatClosed) picStatClosed.textContent = `${lineClosed} solve`;
+    const picStatRate = document.getElementById(`pic-stat-rate-${slug}`);
+    if (picStatRate) picStatRate.textContent = `${lineRate} %`;
 
     const totalByMonth = [];
     const closedByMonth = [];
@@ -613,6 +655,44 @@ function renderIndividualLineCharts(fyList) {
       }
     });
   });
+
+  // Build/Update Overview PIC Leaders Card to fill the 2 empty grid slots beside Die Press
+  let overviewCard = document.getElementById('line-card-pic-overview');
+  if (!overviewCard) {
+    overviewCard = document.createElement('div');
+    overviewCard.id = 'line-card-pic-overview';
+    overviewCard.className = 'card';
+    overviewCard.style.padding = '1rem';
+    overviewCard.style.background = 'var(--bg-card-solid)';
+    overviewCard.style.border = '1px solid var(--border-color)';
+    overviewCard.style.gridColumn = 'span 2';
+    
+    overviewCard.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+        <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--text-main); font-family: 'Outfit', sans-serif; letter-spacing: 0.5px; display: flex; align-items: center; gap: 0.4rem;">
+          <i data-lucide="users" style="color: var(--primary); width: 18px; height: 18px;"></i> Line Leaders & PIC Responsibility Overview
+        </h4>
+        <span class="badge badge-closed" style="font-size: 0.75rem;">7 Production Lines</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; align-items: center; justify-content: center; padding-top: 0.25rem;">
+        ${[
+          { name: 'Sujadmiko', role: 'Finishing Line', picKey: 'PIC_SUJADMIKO', file: 'static/img/pic_sujadmiko.png' },
+          { name: 'Haris HD', role: 'Core & RCS', picKey: 'PIC_HARIS_HD', file: 'static/img/pic_haris_hd.png' },
+          { name: 'Alim S', role: 'Melting & Die Press', picKey: 'PIC_ALIM_S', file: 'static/img/pic_alim_s.png' },
+          { name: 'Junaedi', role: 'Moulding Line', picKey: 'PIC_JUNAEDI', file: 'static/img/pic_junaedi.png' },
+          { name: 'M. Iqbal T', role: 'Sand Prep Line', picKey: 'PIC_M_IQBAL_T', file: 'static/img/pic_m_iqbal_t.png' }
+        ].map(p => `
+          <div style="display: flex; flex-direction: column; align-items: center; text-align: center; background: var(--bg-input); padding: 0.6rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+            <img src="${p.file}" onerror="if(typeof ${p.picKey}!=='undefined')this.src=${p.picKey}" alt="${p.name}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); margin-bottom: 0.35rem; box-shadow: var(--shadow-sm);">
+            <span style="font-weight: 700; font-size: 0.775rem; color: var(--text-main); font-family: 'Outfit', sans-serif;">${p.name}</span>
+            <span style="font-size: 0.675rem; color: var(--text-muted); font-weight: 500;">${p.role}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    gridContainer.appendChild(overviewCard);
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
 }
 
 // CHART 2: Monthly Trend Line Chart (12 Months FY: Apr -> Mar)
