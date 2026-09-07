@@ -411,17 +411,17 @@
             </div>
           </div>
 
-          <!-- Judgement Card (O / X) with Transparent Anime Chibi Mascot -->
-          <div class="judgement-card">
-            <div>
+          <!-- Judgement Card (O / X) with Custom User Mascot & Speech Bubble -->
+          <div class="judgement-card" style="padding: 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 140px;">
+            <div style="flex: 1; min-width: 200px;">
               <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
                 <i data-lucide="shield-check" style="color: var(--primary);"></i> Judgement Status TPM
               </h3>
-              <div id="judgement-status-badge" style="font-size: 1.25rem; font-weight: 800; color: var(--success); margin: 0.2rem 0;">O (OK)</div>
-              <p id="judgement-message" style="font-size: 0.825rem; color: var(--text-muted);">Semua temuan tertanggulangi tepat waktu (&lt; 3 bulan)</p>
+              <div id="judgement-status-badge" style="font-size: 1.3rem; font-weight: 800; color: var(--success); margin: 0.3rem 0;">O (OK)</div>
+              <p id="judgement-message" style="font-size: 0.825rem; color: var(--text-muted); max-width: 260px;">Semua temuan tertanggulangi tepat waktu (&lt; 3 bulan)</p>
             </div>
-            <div id="judgement-symbol-box" class="judgement-avatar-box">
-              <img id="judgement-avatar-img" src="static/img/chibi_ok.png" onerror="if(typeof CHIBI_MASCOT_OK!='undefined')this.src=CHIBI_MASCOT_OK" alt="TPM Judgement Chibi Mascot" style="width: 85px; height: 85px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(16, 185, 129, 0.5)); transition: var(--transition);">
+            <div id="judgement-symbol-box" class="judgement-avatar-box" style="flex-shrink: 0; display: flex; align-items: center; justify-content: flex-end;">
+              <img id="judgement-avatar-img" src="static/img/chibi_ok.png" onerror="if(typeof CHIBI_MASCOT_OK!='undefined')this.src=CHIBI_MASCOT_OK" alt="TPM Judgement Chibi Mascot" style="height: 110px; width: auto; max-width: 240px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3)); transition: var(--transition);">
             </div>
           </div>
         </div>
