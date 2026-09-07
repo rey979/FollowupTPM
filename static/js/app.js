@@ -449,15 +449,16 @@ function renderDashboard() {
     if (progressDetailText) progressDetailText.textContent = `${closed} Closed / ${total} Total Temuan`;
   }
 
-  // Update Judgement Card (O / X)
-  const judgementSymbolBox = document.getElementById('judgement-symbol-box');
+  // Update Judgement Card (O / X) with Anime Chibi Mascot
+  const judgementAvatarImg = document.getElementById('judgement-avatar-img');
   const judgementStatusBadge = document.getElementById('judgement-status-badge');
   const judgementMessage = document.getElementById('judgement-message');
   
   if (overdueCount > 0) {
-    if (judgementSymbolBox) {
-      judgementSymbolBox.className = 'judgement-symbol-box judgement-ng';
-      judgementSymbolBox.textContent = 'X';
+    if (judgementAvatarImg) {
+      judgementAvatarImg.src = 'static/img/chibi_ng.jpg';
+      judgementAvatarImg.style.borderColor = 'var(--danger)';
+      judgementAvatarImg.style.boxShadow = '0 0 14px rgba(239, 68, 68, 0.45)';
     }
     if (judgementStatusBadge) {
       judgementStatusBadge.style.color = 'var(--danger)';
@@ -465,9 +466,10 @@ function renderDashboard() {
     }
     if (judgementMessage) judgementMessage.textContent = `Ada ${overdueCount} temuan terhambat (> 3 bulan)`;
   } else {
-    if (judgementSymbolBox) {
-      judgementSymbolBox.className = 'judgement-symbol-box judgement-ok';
-      judgementSymbolBox.textContent = 'O';
+    if (judgementAvatarImg) {
+      judgementAvatarImg.src = 'static/img/chibi_ok.jpg';
+      judgementAvatarImg.style.borderColor = 'var(--success)';
+      judgementAvatarImg.style.boxShadow = '0 0 14px rgba(16, 185, 129, 0.45)';
     }
     if (judgementStatusBadge) {
       judgementStatusBadge.style.color = 'var(--success)';
