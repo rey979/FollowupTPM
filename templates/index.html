@@ -14,6 +14,9 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
+  <!-- Chart.js Data Visualization Engine -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <!-- Embedded Stylesheet (Self-Contained for tiiny.site & static web hosting) -->
   <style>
     /* ==========================================================================
@@ -58,99 +61,96 @@
       --bg-card: rgba(18, 24, 38, 0.8);
       --bg-card-solid: #121826;
       --bg-glass: rgba(18, 24, 38, 0.75);
-      --bg-sidebar: #121826;
-      --bg-input: #1a2234;
-      --border-color: rgba(255, 255, 255, 0.08);
+      --bg-sidebar: #0f172a;
+      --bg-input: #1e293b;
+      --border-color: rgba(51, 65, 85, 0.8);
       --border-focus: #60a5fa;
-      --text-main: #f1f5f9;
+      --text-main: #f8fafc;
       --text-muted: #94a3b8;
       --text-light: #64748b;
       --primary: #3b82f6;
-      --primary-hover: #2563eb;
+      --primary-hover: #60a5fa;
       --primary-light: rgba(59, 130, 246, 0.15);
-      --success: #10b981;
       --success-light: rgba(16, 185, 129, 0.15);
-      --warning: #f59e0b;
       --warning-light: rgba(245, 158, 11, 0.15);
-      --danger: #f87171;
       --danger-light: rgba(239, 68, 68, 0.15);
-      --info: #22d3ee;
       --info-light: rgba(6, 182, 212, 0.15);
       --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
       --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
       --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-      --shadow-glow: 0 0 25px rgba(59, 130, 246, 0.25);
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      background-color: var(--bg-main);
-      color: var(--text-main);
-      min-height: 100vh;
-      line-height: 1.5;
-      transition: background-color 0.3s ease, color 0.3s ease;
-      overflow-x: hidden;
-    }
-    h1, h2, h3, h4, h5, h6 { font-family: 'Outfit', 'Inter', sans-serif; font-weight: 700; letter-spacing: -0.02em; }
-    button, input, select, textarea { font-family: inherit; }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    body { background-color: var(--bg-main); color: var(--text-main); min-height: 100vh; overflow-x: hidden; transition: background-color 0.3s ease; }
     .app-container { display: flex; min-height: 100vh; }
-    .sidebar {
-      width: 280px;
-      background: var(--bg-sidebar);
-      border-right: 1px solid var(--border-color);
-      display: flex; flex-direction: column;
-      padding: 1.5rem; position: fixed; height: 100vh; z-index: 100;
-      backdrop-filter: blur(12px); transition: var(--transition);
-    }
-    .brand { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem; }
-    .brand-icon {
-      width: 42px; height: 42px;
-      background: linear-gradient(135deg, #2563eb, #7c3aed);
-      border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center;
-      color: white; box-shadow: var(--shadow-glow);
-    }
-    .brand-text h2 { font-size: 1.25rem; background: linear-gradient(135deg, var(--text-main), var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .brand-text span { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
-    .nav-menu { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
-    .nav-item {
-      display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem 1rem;
-      border-radius: var(--radius-md); color: var(--text-muted); font-weight: 500; cursor: pointer;
-      border: none; background: transparent; width: 100%; text-align: left; transition: var(--transition); font-size: 0.95rem;
-    }
+    .sidebar { width: 260px; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; left: 0; z-index: 100; transition: var(--transition); }
+    .sidebar-header { padding: 1.5rem; display: flex; align-items: center; gap: 0.75rem; border-bottom: 1px solid var(--border-color); }
+    .brand-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary), #1d4ed8); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: white; box-shadow: var(--shadow-glow); }
+    .brand-title { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.25rem; background: linear-gradient(135deg, var(--text-main), var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .sidebar-nav { padding: 1.25rem 1rem; display: flex; flex-direction: column; gap: 0.4rem; flex: 1; }
+    .nav-item { display: flex; align-items: center; gap: 0.85rem; padding: 0.75rem 1rem; border-radius: var(--radius-md); color: var(--text-muted); text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: var(--transition); cursor: pointer; border: none; background: transparent; width: 100%; text-align: left; }
     .nav-item:hover { background: var(--primary-light); color: var(--primary); }
     .nav-item.active { background: var(--primary); color: white; box-shadow: var(--shadow-glow); }
-    .badge-count { margin-left: auto; background: rgba(255, 255, 255, 0.25); color: inherit; padding: 0.15rem 0.6rem; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 600; }
-    .sidebar-footer { padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.75rem; }
-    .theme-toggle { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.85rem; background: var(--bg-input); border-radius: var(--radius-md); border: 1px solid var(--border-color); cursor: pointer; }
-    .main-content { margin-left: 280px; flex: 1; padding: 2rem 2.5rem; max-width: 1400px; }
-    .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-    .header-title h1 { font-size: 1.85rem; color: var(--text-main); }
-    .header-title p { color: var(--text-muted); font-size: 0.95rem; margin-top: 0.25rem; }
-    .header-actions { display: flex; gap: 0.75rem; align-items: center; }
-    .card { background: var(--bg-card); backdrop-filter: blur(16px); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-md); transition: var(--transition); }
-    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.7rem 1.3rem; border-radius: var(--radius-md); font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none; transition: var(--transition); }
-    .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); }
+    .sidebar-footer { padding: 1.25rem 1rem; border-top: 1px solid var(--border-color); }
+    .theme-toggle { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: var(--bg-input); border-radius: var(--radius-md); cursor: pointer; color: var(--text-muted); font-size: 0.85rem; font-weight: 500; border: 1px solid var(--border-color); }
+    .main-content { flex: 1; margin-left: 260px; padding: 2rem; max-width: calc(100vw - 260px); transition: var(--transition); }
+    .top-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap; }
+    .header-title h1 { font-family: 'Outfit', sans-serif; font-size: 1.75rem; font-weight: 700; color: var(--text-main); }
+    .header-title p { font-size: 0.875rem; color: var(--text-muted); margin-top: 0.25rem; }
+    .header-actions { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+    
+    /* Real-Time Clock Widget */
+    .clock-widget {
+      display: flex; flex-direction: column; align-items: flex-end; justify-content: center;
+      padding: 0.35rem 0.85rem; background: var(--bg-card-solid); border: 1px solid var(--border-color);
+      border-radius: var(--radius-md); font-family: 'Outfit', sans-serif; box-shadow: var(--shadow-sm);
+    }
+    .clock-time { font-size: 1.05rem; font-weight: 800; color: var(--primary); letter-spacing: 0.5px; line-height: 1.1; }
+    .clock-date { font-size: 0.725rem; font-weight: 500; color: var(--text-muted); margin-top: 2px; }
+
+    .card { background: var(--bg-card); backdrop-filter: blur(12px); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-sm); transition: var(--transition); }
+    .card:hover { box-shadow: var(--shadow-md); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.6rem 1.25rem; border-radius: var(--radius-md); font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: var(--transition); border: none; text-decoration: none; }
+    .btn-primary { background: var(--primary); color: white; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25); }
     .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
     .btn-secondary { background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border-color); }
     .btn-secondary:hover { background: var(--border-color); }
-    .btn-danger { background: var(--danger-light); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
-    .btn-sm { padding: 0.45rem 0.85rem; font-size: 0.825rem; border-radius: var(--radius-sm); }
-    .form-group { margin-bottom: 1.5rem; }
-    .form-label { display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-main); margin-bottom: 0.5rem; }
-    .form-label .required { color: var(--danger); margin-left: 0.25rem; }
-    .form-input, .form-select, .form-textarea { width: 100%; padding: 0.8rem 1rem; background: var(--bg-input); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-main); font-size: 0.95rem; transition: var(--transition); }
-    .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--border-focus); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15); background: var(--bg-card-solid); }
-    .form-textarea { resize: vertical; min-height: 110px; }
-    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2rem; }
-    .metric-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: 1.25rem; }
-    .metric-icon { width: 52px; height: 52px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: white; }
-    .metric-icon.blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
-    .metric-icon.red { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+    .btn-danger { background: var(--danger-light); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+    .btn-danger:hover { background: var(--danger); color: white; }
+    .btn-sm { padding: 0.4rem 0.85rem; font-size: 0.8rem; border-radius: var(--radius-sm); }
+    .btn-lg { padding: 0.85rem 1.75rem; font-size: 1rem; border-radius: var(--radius-md); }
+    
+    .form-group { margin-bottom: 1.25rem; }
+    .form-label { display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.5rem; }
+    .form-label .required { color: var(--danger); }
+    .form-input, .form-select, .form-textarea { width: 100%; padding: 0.75rem 1rem; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-main); font-size: 0.9rem; transition: var(--transition); outline: none; }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
+    
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem; }
+    .metric-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem; display: flex; align-items: center; gap: 1rem; box-shadow: var(--shadow-sm); }
+    .metric-icon { width: 48px; height: 48px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem; flex-shrink: 0; }
+    .metric-icon.blue { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
     .metric-icon.yellow { background: linear-gradient(135deg, #f59e0b, #d97706); }
     .metric-icon.green { background: linear-gradient(135deg, #10b981, #047857); }
+    .metric-icon.red { background: linear-gradient(135deg, #ef4444, #b91c1c); }
     .metric-info span { font-size: 0.825rem; color: var(--text-muted); font-weight: 500; }
     .metric-info h3 { font-size: 1.6rem; color: var(--text-main); margin-top: 0.1rem; }
+
+    /* Judgement Symbols */
+    .judgement-symbol-box { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; font-weight: 900; font-family: 'Outfit', sans-serif; flex-shrink: 0; }
+    .judgement-ok { background: var(--success-light); color: var(--success); border: 3px solid var(--success); }
+    .judgement-ng { background: var(--danger-light); color: var(--danger); border: 3px solid var(--danger); }
+
+    /* Ranking List */
+    .ranking-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .ranking-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0.6rem; background: var(--bg-input); border-radius: var(--radius-md); border: 1px solid var(--border-color); }
+    .rank-badge { width: 24px; height: 24px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem; flex-shrink: 0; }
+    .rank-badge.top-1 { background: #fef3c7; color: #d97706; border: 1px solid #f59e0b; }
+    .rank-badge.top-2 { background: #e2e8f0; color: #475569; border: 1px solid #94a3b8; }
+    .rank-badge.top-3 { background: #ffedd5; color: #c2410c; border: 1px solid #fb923c; }
+
+    .overdue-item { padding: 0.85rem; background: var(--danger-light); border: 1px solid rgba(239,68,68,0.25); border-radius: var(--radius-md); margin-bottom: 0.6rem; }
+
     .table-container { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border-color); }
     .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
     .data-table th { background: var(--bg-input); padding: 1rem 1.25rem; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border-color); white-space: nowrap; }
@@ -198,43 +198,34 @@
       .mobile-card-detail { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
       .form-input, .form-select, .form-textarea { font-size: 16px !important; }
       .card { padding: 1.25rem; }
-      .toast-container { bottom: 80px; right: 1rem; left: 1rem; }
-      .toast { min-width: unset; width: 100%; }
-      .modal-card { width: 95%; padding: 1.25rem; }
-      .form-actions-bar { flex-direction: column-reverse !important; width: 100% !important; gap: 0.75rem !important; margin-bottom: 2.5rem !important; }
-      .form-actions-bar .btn { width: 100% !important; min-height: 52px !important; font-size: 1rem !important; justify-content: center !important; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     }
   </style>
 </head>
 <body>
+
   <div class="app-container">
-    
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
-      <div class="brand">
+      <div class="sidebar-header">
         <div class="brand-icon">
           <i data-lucide="wrench"></i>
         </div>
-        <div class="brand-text">
-          <h2>TPM FollowUp</h2>
-          <span>Dashboard & Form</span>
-        </div>
+        <span class="brand-title">TPM FollowUp</span>
       </div>
 
-      <nav class="nav-menu">
+      <nav class="sidebar-nav">
         <button class="nav-item active" onclick="switchTab('filler')" id="nav-filler">
-          <i data-lucide="file-text"></i>
-          <span>Isi Form Temuan</span>
+          <i data-lucide="file-input"></i>
+          <span>Form Input Temuan</span>
         </button>
 
         <button class="nav-item" onclick="switchTab('dashboard')" id="nav-dashboard">
           <i data-lucide="layout-dashboard"></i>
           <span>Web Dashboard</span>
-          <span class="badge-count" id="badge-total-count">0</span>
         </button>
 
         <button class="nav-item" onclick="switchTab('builder')" id="nav-builder">
-          <i data-lucide="sliders"></i>
+          <i data-lucide="layers"></i>
           <span>Form Builder Studio</span>
         </button>
 
@@ -263,6 +254,11 @@
         </div>
 
         <div class="header-actions">
+          <div class="clock-widget">
+            <span id="realtime-clock" class="clock-time">--:--:--</span>
+            <span id="realtime-date" class="clock-date">-- --- ----</span>
+          </div>
+
           <span id="cloud-sync-badge" class="badge badge-closed"><i data-lucide="cloud"></i> 🟢 Database Synced</span>
           <button class="btn btn-secondary btn-sm" onclick="syncFromBackend()" id="btn-sync-cloud" title="Sync Real-time Database Data">
             <i data-lucide="refresh-cw"></i> Sync Data
@@ -309,12 +305,46 @@
 
       <!-- TAB 2: WEB DASHBOARD MONITORING -->
       <section id="tab-dashboard" class="tab-page" style="display: none;">
-        <!-- Metrics Summary Cards -->
-        <div class="metrics-grid">
-          <div class="metric-card">
-            <div class="metric-icon blue">
-              <i data-lucide="file-check"></i>
+        
+        <!-- FY & Month Toolbar -->
+        <div class="fy-toolbar" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; background: var(--bg-card); padding: 0.85rem 1.25rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
+          <div style="display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <i data-lucide="calendar" style="color: var(--primary); width: 18px; height: 18px;"></i>
+              <span style="font-weight: 600; font-size: 0.85rem; color: var(--text-main);">Fiscal Year:</span>
+              <select id="fy-filter" class="form-select" style="width: auto; font-weight: 700; padding: 0.3rem 0.75rem;" onchange="onDashboardFilterChange()">
+                <!-- Populated dynamically -->
+              </select>
             </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-weight: 600; font-size: 0.85rem; color: var(--text-main);">Bulan:</span>
+              <select id="month-filter" class="form-select" style="width: auto; font-weight: 700; padding: 0.3rem 0.75rem;" onchange="onDashboardFilterChange()">
+                <option value="ALL">Semua Bulan (Full FY)</option>
+                <option value="4">April</option>
+                <option value="5">Mei</option>
+                <option value="6">Juni</option>
+                <option value="7">Juli</option>
+                <option value="8">Agustus</option>
+                <option value="9">September</option>
+                <option value="10">Oktober</option>
+                <option value="11">November</option>
+                <option value="12">Desember</option>
+                <option value="1">Januari</option>
+                <option value="2">Februari</option>
+                <option value="3">Maret</option>
+              </select>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">
+            <i data-lucide="info" style="width: 14px; height: 14px;"></i>
+            <span>Periode Fisikal: <strong>April → Maret</strong></span>
+          </div>
+        </div>
+
+        <!-- 6 KPI Cards Grid -->
+        <div class="metrics-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+          <div class="metric-card">
+            <div class="metric-icon blue"><i data-lucide="file-check"></i></div>
             <div class="metric-info">
               <span>Total Temuan</span>
               <h3 id="stat-total">0</h3>
@@ -322,42 +352,161 @@
           </div>
 
           <div class="metric-card">
-            <div class="metric-icon yellow">
-              <i data-lucide="clock"></i>
-            </div>
+            <div class="metric-icon yellow"><i data-lucide="clock"></i></div>
             <div class="metric-info">
-              <span>Status On Progress</span>
+              <span>On Progress</span>
               <h3 id="stat-progress">0</h3>
             </div>
           </div>
 
           <div class="metric-card">
-            <div class="metric-icon green">
-              <i data-lucide="check-circle-2"></i>
-            </div>
+            <div class="metric-icon green"><i data-lucide="check-circle-2"></i></div>
             <div class="metric-info">
-              <span>Status Closed</span>
+              <span>Closed</span>
               <h3 id="stat-closed">0</h3>
             </div>
           </div>
 
           <div class="metric-card">
-            <div class="metric-icon red">
-              <i data-lucide="bar-chart-3"></i>
-            </div>
+            <div class="metric-icon blue"><i data-lucide="pie-chart"></i></div>
             <div class="metric-info">
               <span>Completion Rate</span>
               <h3 id="stat-rate">0%</h3>
             </div>
           </div>
+
+          <div class="metric-card" id="card-stat-overdue">
+            <div class="metric-icon red" id="icon-stat-overdue"><i data-lucide="alert-triangle"></i></div>
+            <div class="metric-info">
+              <span>Overdue >3 Bulan</span>
+              <h3 id="stat-overdue">0</h3>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon green"><i data-lucide="timer"></i></div>
+            <div class="metric-info">
+              <span>Avg Closure</span>
+              <h3 id="stat-avg-closure">-</h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- Performance & Judgement Row -->
+        <div class="perf-judgement-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+          <!-- Progress Penanggulangan Card -->
+          <div class="card" style="padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="trending-up" style="color: var(--primary);"></i> Progress Penanggulangan
+              </h3>
+              <span id="progress-pct-badge" style="font-size: 1.4rem; font-weight: 800; color: var(--primary); font-family: 'Outfit', sans-serif;">0%</span>
+            </div>
+            <div style="width: 100%; height: 14px; background: var(--bg-input); border-radius: var(--radius-full); overflow: hidden; margin: 0.85rem 0; border: 1px solid var(--border-color);">
+              <div id="progress-bar-fill" style="height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary), var(--info)); border-radius: var(--radius-full); transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.825rem; color: var(--text-muted);">
+              <span id="progress-detail-text">0 Closed / 0 Total Temuan</span>
+              <span>Target: 100% Closed</span>
+            </div>
+          </div>
+
+          <!-- Judgement Card (O / X) -->
+          <div class="judgement-card">
+            <div>
+              <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="shield-check" style="color: var(--primary);"></i> Judgement Status TPM
+              </h3>
+              <div id="judgement-status-badge" style="font-size: 1.2rem; font-weight: 800; color: var(--success); margin: 0.2rem 0;">O (OK)</div>
+              <p id="judgement-message" style="font-size: 0.825rem; color: var(--text-muted);">Semua temuan tertanggulangi tepat waktu (< 3 bulan)</p>
+            </div>
+            <div id="judgement-symbol-box" class="judgement-symbol-box judgement-ok">
+              O
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Line Bar Chart -->
+        <div class="card" style="margin-bottom: 1.25rem; padding: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <div>
+              <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main);">TPM Finding vs Follow Up by Line</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted);">Perbandingan jumlah temuan dan status penanggulangan per line produksi</p>
+            </div>
+            <span class="badge badge-closed"><i data-lucide="bar-chart-2"></i> Line Analytics</span>
+          </div>
+          <div style="position: relative; height: 320px; width: 100%;">
+            <canvas id="chart-line-performance"></canvas>
+          </div>
+        </div>
+
+        <!-- Secondary Charts Grid -->
+        <div class="charts-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+          <!-- Trend Line Chart -->
+          <div class="card" style="padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main);">Fiscal Year Monthly Trend</h3>
+              <span class="badge badge-onprogress" style="font-size: 0.75rem;">12-Month FY</span>
+            </div>
+            <div style="position: relative; height: 230px; width: 100%;">
+              <canvas id="chart-monthly-trend"></canvas>
+            </div>
+          </div>
+
+          <!-- Status Donut Chart & Line Ranking -->
+          <div class="card" style="padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main);">Status & Line Ranking</h3>
+              <span class="badge badge-closed" style="font-size: 0.75rem;">Performance Rank</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 140px 1fr; gap: 1rem; align-items: center;">
+              <div style="position: relative; height: 160px; width: 140px;">
+                <canvas id="chart-status-donut"></canvas>
+              </div>
+              <div>
+                <h4 style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase;">Ranking Achievement Line</h4>
+                <div id="line-ranking-list" class="ranking-list">
+                  <!-- Rendered by JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Overdue Panel Section -->
+        <div class="card" style="margin-bottom: 1.25rem; padding: 1.25rem; border-left: 4px solid var(--danger);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
+            <h3 style="font-size: 1rem; font-weight: 700; color: var(--danger); display: flex; align-items: center; gap: 0.5rem;">
+              <i data-lucide="alert-circle"></i> Overdue Follow Up (> 3 Bulan)
+            </h3>
+            <span id="overdue-count-badge" class="badge badge-open">0 Items</span>
+          </div>
+          <div id="overdue-panel-list">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Recent Findings Section -->
+        <div class="card" style="margin-bottom: 1.25rem; padding: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
+            <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+              <i data-lucide="clock-4" style="color: var(--primary);"></i> Recent Findings (5 Terbaru)
+            </h3>
+            <button class="btn btn-secondary btn-sm" onclick="scrollToFullTable()">
+              <i data-lucide="list"></i> Lihat Semua Tabel Detail
+            </button>
+          </div>
+          <div id="recent-findings-list">
+            <!-- Rendered by JS -->
+          </div>
         </div>
 
         <!-- Filter & Search Toolbar -->
-        <div class="card" style="margin-bottom: 1.5rem; padding: 1.25rem;">
+        <div class="card" style="margin-bottom: 1.25rem; padding: 1.25rem;">
           <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between;">
             <div style="display: flex; gap: 1rem; flex: 1; min-width: 280px;">
               <div style="position: relative; flex: 1;">
-                <input type="text" id="search-input" class="form-input" placeholder="Cari berdasarkan nama, mesin, atau problem..." oninput="filterTable()">
+                <input type="text" id="search-input" class="form-input" placeholder="Cari berdasarkan nama, line, mesin, atau problem..." oninput="filterTable()">
               </div>
 
               <select id="status-filter" class="form-select" style="width: 200px;" onchange="filterTable()">
@@ -393,6 +542,7 @@
                   <th>No</th>
                   <th>Tanggal</th>
                   <th>Nama Pelapor</th>
+                  <th>Line Produksi</th>
                   <th>Nama Machine</th>
                   <th>Temuan / Problem</th>
                   <th>Ilustrasi</th>
@@ -450,50 +600,46 @@
               </button>
             </div>
             <div id="builder-canvas-fields">
-              <!-- Rendered canvas fields -->
+              <!-- Rendered by JavaScript -->
             </div>
           </div>
 
-          <!-- Inspector -->
+          <!-- Inspector Panel -->
           <div class="field-inspector">
-            <h3 class="toolbox-title">Pengaturan Form</h3>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
-              Setiap perubahan pada form builder akan langsung memperbarui tampilan **Form Input Temuan**.
+            <h3 class="toolbox-title">Petunjuk Studio</h3>
+            <p style="font-size: 0.875rem; color: var(--text-muted); line-height: 1.6;">
+              Klik elemen field di panel kiri untuk menambahkan input baru ke dalam Form Follow Up Temuan TPM Anda secara real-time.
             </p>
-            <div class="form-group">
-              <label class="form-label">Judul Form</label>
-              <input type="text" id="builder-form-title" class="form-input" value="Form Follow Up Temuan TPM" oninput="updateFormMeta()">
-            </div>
           </div>
         </div>
       </section>
 
-      <!-- TAB 4: SETTINGS & DATA DEMO -->
+      <!-- TAB 4: SETTINGS & DEMO -->
       <section id="tab-settings" class="tab-page" style="display: none;">
         <div class="card" style="max-width: 700px;">
-          <h3 style="margin-bottom: 1rem;">Pengaturan Sistem & Data Demo</h3>
-          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
-            Kelola data laporan temuan TPM atau muat data sampel bawaan untuk pengujian dashboard.
+          <h3 style="margin-bottom: 1rem; color: var(--text-main);">Kelola Data & Demo Simulator</h3>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+            Fitur pengujian dan pembersihan data laporan yang tersimpan dalam sistem.
           </p>
 
           <div style="display: flex; flex-direction: column; gap: 1rem;">
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: var(--bg-input); border-radius: var(--radius-md);">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--bg-input); border-radius: var(--radius-md);">
               <div>
-                <h4 style="font-size: 0.95rem;">Muat Data Sampel Demo</h4>
-                <p style="font-size: 0.8rem; color: var(--text-muted);">Isi dashboard dengan contoh data temuan TPM nyata.</p>
+                <strong>Simulasi Sampel Data</strong>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">Masukkan 7 data sampel temuan TPM fiktif untuk demo dashboard.</p>
               </div>
               <button class="btn btn-primary btn-sm" onclick="loadSampleData()">
-                <i data-lucide="database"></i> Load Sample
+                <i data-lucide="sparkles"></i> Inject Sampel
               </button>
             </div>
 
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: var(--danger-light); border-radius: var(--radius-md); border: 1px solid rgba(239, 68, 68, 0.2);">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--danger-light); border-radius: var(--radius-md); border: 1px solid rgba(239,68,68,0.3);">
               <div>
-                <h4 style="font-size: 0.95rem; color: var(--danger);">Hapus Semua Data Respons</h4>
-                <p style="font-size: 0.8rem; color: var(--text-muted);">Mengosongkan seluruh laporan temuan dari penyimpanan lokal & database server.</p>
+                <strong style="color: var(--danger);">Kosongkan Seluruh Data</strong>
+                <p style="font-size: 0.8rem; color: var(--danger);">Hapus permanen seluruh data temuan yang tersimpan di cloud database.</p>
               </div>
               <button class="btn btn-danger btn-sm" onclick="clearAllData()">
-                <i data-lucide="trash-2"></i> Hapus Semua Data
+                <i data-lucide="trash-2"></i> Hapus Semua
               </button>
             </div>
           </div>
@@ -503,80 +649,61 @@
     </main>
   </div>
 
-  <!-- MOBILE BOTTOM NAVIGATION BAR -->
-  <nav class="mobile-nav-bar">
+  <!-- MOBILE NAVIGATION BAR (< 768px) -->
+  <div class="mobile-nav-bar">
     <button class="mobile-nav-item active" onclick="switchTab('filler')" id="mobile-nav-filler">
-      <i data-lucide="file-text"></i>
+      <i data-lucide="file-input"></i>
       <span>Form</span>
     </button>
-
     <button class="mobile-nav-item" onclick="switchTab('dashboard')" id="mobile-nav-dashboard">
       <i data-lucide="layout-dashboard"></i>
       <span>Dashboard</span>
     </button>
-
     <button class="mobile-nav-item" onclick="switchTab('builder')" id="mobile-nav-builder">
-      <i data-lucide="sliders"></i>
-      <span>Builder</span>
+      <i data-lucide="layers"></i>
+      <span>Studio</span>
     </button>
-
-    <button class="mobile-nav-item" onclick="toggleTheme()" id="mobile-nav-theme">
-      <i data-lucide="moon"></i>
-      <span>Tema</span>
+    <button class="mobile-nav-item" onclick="switchTab('settings')" id="mobile-nav-settings">
+      <i data-lucide="settings"></i>
+      <span>Setting</span>
     </button>
-  </nav>
+  </div>
 
-  <!-- MODAL DETAIL TEMUAN TPM -->
+  <!-- DETAIL MODAL -->
   <div class="modal-overlay" id="detail-modal">
     <div class="modal-card">
       <div class="modal-header">
         <div>
-          <h2 style="font-size: 1.25rem;" id="modal-title">Detail Temuan TPM</h2>
-          <span id="modal-date" style="font-size: 0.8rem; color: var(--text-muted);"></span>
+          <h3 id="modal-title" style="font-size: 1.2rem; color: var(--text-main);">Detail Temuan</h3>
+          <span id="modal-date" style="font-size: 0.8rem; color: var(--text-muted);">ID: -</span>
         </div>
-        <button class="action-btn" onclick="closeModal()">
-          <i data-lucide="x"></i>
-        </button>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal()">✕</button>
       </div>
-
       <div id="modal-body-content" style="display: flex; flex-direction: column; gap: 1rem;">
-        <!-- Filled by JS -->
+        <!-- Filled dynamically -->
       </div>
-
-      <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.75rem;">
-        <button class="btn btn-danger btn-sm" id="btn-modal-delete" onclick="deleteFromModal()">
-          <i data-lucide="trash-2"></i> Hapus Laporan
+      <div style="margin-top: 1.5rem; display: flex; justify-content: space-between;">
+        <button class="btn btn-danger btn-sm" onclick="deleteFromModal()">
+          <i data-lucide="trash-2"></i> Hapus Temuan Ini
         </button>
-        <button class="btn btn-secondary btn-sm" onclick="window.print()">
-          <i data-lucide="printer"></i> Cetak Laporan
-        </button>
-        <button class="btn btn-primary btn-sm" onclick="closeModal()">Tutup</button>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal()">Tutup</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL SHARE FORM & QR CODE -->
+  <!-- SHARE FORM MODAL -->
   <div class="modal-overlay" id="share-modal">
     <div class="modal-card" style="max-width: 480px; text-align: center;">
       <div class="modal-header">
-        <h2 style="font-size: 1.25rem;">Bagikan Form Temuan TPM</h2>
-        <button class="action-btn" onclick="closeShareModal()">
-          <i data-lucide="x"></i>
-        </button>
+        <h3 style="font-size: 1.1rem; color: var(--text-main);">Bagikan Form TPM</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeShareModal()">✕</button>
       </div>
-
-      <div style="padding: 0.5rem 0; display: flex; flex-direction: column; align-items: center; gap: 1rem;">
-        <p style="font-size: 0.875rem; color: var(--text-muted);">
-          Scan QR Code di bawah ini untuk membuka Form Input Temuan dari Smartphone, atau salin link di bawah ini.
-        </p>
-
-        <div style="background: white; padding: 1rem; border-radius: var(--radius-md); border: 2px dashed var(--primary); display: inline-block;">
-          <img id="share-qr-code" src="" alt="QR Code Form" style="width: 170px; height: 170px;">
-        </div>
-
-        <div style="width: 100%; display: flex; gap: 0.5rem; margin-top: 0.5rem;">
-          <input type="text" id="share-url-input" class="form-input" readonly style="font-size: 0.85rem;">
-          <button class="btn btn-primary" onclick="copyShareUrl()">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 0.5rem 0;">
+        <p style="font-size: 0.875rem; color: var(--text-muted);">Scan QR Code ini dari Handphone untuk membuka Form Input Temuan:</p>
+        <img id="share-qr-code" src="" alt="QR Code Link Form" style="width: 180px; height: 180px; border-radius: var(--radius-md); border: 2px solid var(--primary); padding: 0.5rem; background: white;">
+        <div style="display: flex; width: 100%; gap: 0.5rem;">
+          <input type="text" id="share-url-input" class="form-input" readonly style="font-size: 0.8rem; text-align: center;">
+          <button class="btn btn-primary btn-sm" onclick="copyShareUrl()">
             <i data-lucide="copy"></i> Copy
           </button>
         </div>
@@ -591,4 +718,3 @@
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>
-
