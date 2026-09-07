@@ -61,6 +61,7 @@ class Finding(db.Model):
     countermeasure = db.Column(db.Text, nullable=True)
     tgl_countermeasure = db.Column(db.String(20), nullable=True)
     status = db.Column(db.String(30), default="On progress")
+    line = db.Column(db.String(100), default="Unassigned")
 
     def to_dict(self):
         return {
@@ -68,6 +69,7 @@ class Finding(db.Model):
             "createdAt": self.created_at.isoformat() if self.created_at else "",
             "nama": self.nama,
             "machine": self.machine,
+            "line": self.line or "Unassigned",
             "problem": self.problem,
             "tgl_temuan": self.tgl_temuan,
             "ilustrasi": self.ilustrasi or "",
@@ -105,6 +107,7 @@ def create_finding():
         id=finding_id,
         nama=data.get("nama", ""),
         machine=data.get("machine", ""),
+        line=data.get("line", "Unassigned"),
         problem=data.get("problem", ""),
         tgl_temuan=data.get("tgl_temuan", ""),
         ilustrasi=data.get("ilustrasi", ""),
