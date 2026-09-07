@@ -703,15 +703,16 @@ function renderStatusDonutChart(closed, onProgress) {
   const centerTextPlugin = {
     id: 'centerTextPlugin',
     beforeDraw: (chart) => {
-      const { width, height, ctx } = chart;
+      if (!chart.chartArea) return;
+      const { ctx, chartArea } = chart;
       ctx.save();
-      ctx.font = `800 1.45rem 'Outfit', 'Inter', sans-serif`;
+      ctx.font = `900 1.75rem 'Outfit', 'Inter', sans-serif`;
       ctx.textBaseline = 'middle';
       ctx.textAlign = 'center';
       ctx.fillStyle = isDark ? '#f8fafc' : '#0f172a';
       const text = `${pct}%`;
-      const textX = Math.round(width / 2);
-      const textY = Math.round((chart.chartArea ? (chart.chartArea.top + chart.chartArea.bottom) / 2 : height / 2) - 8);
+      const textX = (chartArea.left + chartArea.right) / 2;
+      const textY = (chartArea.top + chartArea.bottom) / 2;
       ctx.fillText(text, textX, textY);
       ctx.restore();
     }
