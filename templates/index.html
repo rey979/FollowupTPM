@@ -334,6 +334,20 @@
                 <option value="3">Maret</option>
               </select>
             </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <i data-lucide="layers" style="color: var(--primary); width: 18px; height: 18px;"></i>
+              <span style="font-weight: 600; font-size: 0.85rem; color: var(--text-main);">Line:</span>
+              <select id="line-filter" class="form-select" style="width: auto; font-weight: 700; padding: 0.3rem 0.75rem;" onchange="onDashboardFilterChange()">
+                <option value="ALL">Semua Line (All Lines)</option>
+                <option value="RCS">RCS</option>
+                <option value="Melting">Melting</option>
+                <option value="Finishing">Finishing</option>
+                <option value="Core Making">Core Making</option>
+                <option value="Moulding">Moulding</option>
+                <option value="Sand Preparation">Sand Preparation</option>
+                <option value="Die Press">Die Press</option>
+              </select>
+            </div>
           </div>
           <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">
             <i data-lucide="info" style="width: 14px; height: 14px;"></i>

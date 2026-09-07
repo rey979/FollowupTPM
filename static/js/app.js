@@ -232,9 +232,11 @@ function onDashboardFilterChange() {
 function getFilteredResponses() {
   const fySelect = document.getElementById('fy-filter');
   const monthSelect = document.getElementById('month-filter');
+  const lineSelect = document.getElementById('line-filter');
   
   const selectedFY = fySelect ? fySelect.value : getFiscalYear(new Date());
   const selectedMonth = monthSelect ? monthSelect.value : 'ALL';
+  const selectedLine = lineSelect ? lineSelect.value : 'ALL';
   
   return responses.filter(r => {
     if (!r.tgl_temuan) return selectedFY === getFiscalYear(new Date());
@@ -248,6 +250,13 @@ function getFilteredResponses() {
         if (m.toString() !== selectedMonth) return false;
       }
     }
+
+    if (selectedLine !== 'ALL') {
+      const lineVal = (r.line || '').trim().toLowerCase();
+      const targetVal = selectedLine.trim().toLowerCase();
+      if (lineVal !== targetVal) return false;
+    }
+
     return true;
   });
 }
@@ -581,6 +590,25 @@ function renderIndividualLineCharts(fyList) {
         </div>
       `;
       gridContainer.appendChild(cardEl);
+    }
+
+    const lineSelect = document.getElementById('line-filter');
+    const selectedLine = lineSelect ? lineSelect.value : 'ALL';
+
+    if (cardEl) {
+      if (selectedLine !== 'ALL' && selectedLine.toLowerCase() === line.toLowerCase()) {
+        cardEl.style.border = '2px solid var(--primary)';
+        cardEl.style.boxShadow = '0 0 16px rgba(37, 99, 235, 0.4)';
+        cardEl.style.opacity = '1';
+      } else if (selectedLine !== 'ALL') {
+        cardEl.style.border = '1px solid var(--border-color)';
+        cardEl.style.boxShadow = 'none';
+        cardEl.style.opacity = '0.45';
+      } else {
+        cardEl.style.border = '1px solid var(--border-color)';
+        cardEl.style.boxShadow = 'none';
+        cardEl.style.opacity = '1';
+      }
     }
 
     const lineItems = fyList.filter(r => r.line === line);
