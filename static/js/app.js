@@ -687,7 +687,7 @@ function renderMonthlyTrendChart() {
   });
 }
 
-// CHART 3: Status Donut Chart with Bold Center Percentage
+// CHART 3: Status Donut Chart with Bold Center Percentage (Single Canvas Plugin)
 function renderStatusDonutChart(closed, onProgress) {
   const ctx = document.getElementById('chart-status-donut');
   if (!ctx) return;
@@ -697,21 +697,15 @@ function renderStatusDonutChart(closed, onProgress) {
   const total = closed + onProgress;
   const pct = total > 0 ? Math.round((closed / total) * 100) : 0;
 
-  // Update HTML overlay center text
-  const donutCenterText = document.getElementById('donut-center-text');
-  if (donutCenterText) {
-    donutCenterText.textContent = `${pct}%`;
-  }
-
   if (statusDonutChartInstance) statusDonutChartInstance.destroy();
 
-  // Custom Plugin to render bold percentage text inside canvas hole
+  // Single Custom Plugin to render bold percentage text inside canvas hole
   const centerTextPlugin = {
     id: 'centerTextPlugin',
     beforeDraw: (chart) => {
       const { width, height, ctx } = chart;
       ctx.save();
-      ctx.font = `800 1.35rem 'Outfit', 'Inter', sans-serif`;
+      ctx.font = `800 1.45rem 'Outfit', 'Inter', sans-serif`;
       ctx.textBaseline = 'middle';
       ctx.textAlign = 'center';
       ctx.fillStyle = isDark ? '#f8fafc' : '#0f172a';
