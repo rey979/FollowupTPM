@@ -41,7 +41,7 @@ let isSubmitting = false;
 let activeDetailId = null;
 
 // Chart Instances
-let lineBarChartInstance = null;
+let individualLineChartsMap = {};
 let monthlyTrendChartInstance = null;
 let statusDonutChartInstance = null;
 
@@ -240,6 +240,12 @@ function getFilteredResponses() {
   });
 }
 
+function getFYResponsesOnly() {
+  const fySelect = document.getElementById('fy-filter');
+  const selectedFY = fySelect ? fySelect.value : getFiscalYear(new Date());
+  return responses.filter(r => r.tgl_temuan && getFiscalYear(r.tgl_temuan) === selectedFY);
+}
+
 function switchTab(tabId) {
   document.querySelectorAll('.tab-page').forEach(page => page.style.display = 'none');
   document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
@@ -399,6 +405,7 @@ async function handleFormSubmit(e) {
 // MAIN DASHBOARD RENDERER
 function renderDashboard() {
   const filteredList = getFilteredResponses();
+  const fyList = getFYResponsesOnly();
   
   const total = filteredList.length;
   const onProgress = filteredList.filter(r => r.status === 'On progress').length;
@@ -471,8 +478,8 @@ function renderDashboard() {
     }
   }
 
-  // Render Charts
-  renderLineBarChart(filteredList);
+  // Render Individual Line Charts Grid & Other Visualizations
+  renderIndividualLineCharts(fyList);
   renderMonthlyTrendChart();
   renderStatusDonutChart(closed, onProgress);
   renderLineRanking(filteredList);
@@ -489,62 +496,118 @@ function renderDashboard() {
   renderTableData(filteredList);
 }
 
-// CHART 1: Grouped Bar Chart by Line
-function renderLineBarChart(filteredList) {
-  const ctx = document.getElementById('chart-line-performance');
-  if (!ctx) return;
+// INDIVIDUAL LINE CHARTS GRID MANAGER
+function renderIndividualLineCharts(fyList) {
+  const gridContainer = document.getElementById('individual-line-charts-grid');
+  if (!gridContainer) return;
   
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   const textColor = isDark ? '#cbd5e1' : '#475569';
   const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)';
-  
-  const lines = [...OFFICIAL_LINES];
-  const totalCounts = lines.map(line => filteredList.filter(r => r.line === line).length);
-  const closedCounts = lines.map(line => filteredList.filter(r => r.line === line && (r.status === 'Close' || r.status === 'Closed')).length);
 
-  if (lineBarChartInstance) lineBarChartInstance.destroy();
-  
-  lineBarChartInstance = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: lines,
-      datasets: [
-        {
-          label: 'Total Temuan',
-          data: totalCounts,
-          backgroundColor: '#2563eb',
-          borderRadius: 6
-        },
-        {
-          label: 'Closed / Follow Up',
-          data: closedCounts,
-          backgroundColor: '#10b981',
-          borderRadius: 6
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { labels: { color: textColor, font: { family: 'Inter', weight: 600 } } },
-        tooltip: {
-          callbacks: {
-            footer: (items) => {
-              const idx = items[0].dataIndex;
-              const tot = totalCounts[idx];
-              const cls = closedCounts[idx];
-              const rate = tot > 0 ? Math.round((cls / tot) * 100) : 0;
-              return `Achievement: ${rate}% (${cls}/${tot})`;
+  const fyMonths = [
+    { m: 4, name: 'Apr' }, { m: 5, name: 'Mei' }, { m: 6, name: 'Jun' },
+    { m: 7, name: 'Jul' }, { m: 8, name: 'Agu' }, { m: 9, name: 'Sep' },
+    { m: 10, name: 'Okt' }, { m: 11, name: 'Nov' }, { m: 12, name: 'Des' },
+    { m: 1, name: 'Jan' }, { m: 2, name: 'Feb' }, { m: 3, name: 'Mar' }
+  ];
+
+  OFFICIAL_LINES.forEach(line => {
+    const slug = line.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    let cardEl = document.getElementById(`line-card-${slug}`);
+    
+    // Dynamically build card shell if not present
+    if (!cardEl) {
+      cardEl = document.createElement('div');
+      cardEl.id = `line-card-${slug}`;
+      cardEl.className = 'card';
+      cardEl.style.padding = '1rem';
+      cardEl.style.background = 'var(--bg-card-solid)';
+      cardEl.style.border = '1px solid var(--border-color)';
+      
+      cardEl.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+          <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--text-main); font-family: 'Outfit', sans-serif; text-transform: uppercase; letter-spacing: 0.5px;">${line}</h4>
+          <span id="line-badge-${slug}" class="badge badge-closed" style="font-size: 0.75rem;">0% Closed</span>
+        </div>
+        <div style="position: relative; height: 190px; width: 100%;">
+          <canvas id="chart-canvas-${slug}"></canvas>
+        </div>
+      `;
+      gridContainer.appendChild(cardEl);
+    }
+
+    const lineItems = fyList.filter(r => r.line === line);
+    const lineTotal = lineItems.length;
+    const lineClosed = lineItems.filter(r => r.status === 'Close' || r.status === 'Closed').length;
+    const lineRate = lineTotal > 0 ? Math.round((lineClosed / lineTotal) * 100) : 0;
+
+    const badgeEl = document.getElementById(`line-badge-${slug}`);
+    if (badgeEl) {
+      badgeEl.textContent = lineTotal > 0 ? `${lineRate}% Closed (${lineClosed}/${lineTotal})` : 'No Data';
+      badgeEl.className = lineTotal === 0 ? 'badge badge-onprogress' : (lineRate >= 80 ? 'badge badge-closed' : 'badge badge-open');
+    }
+
+    const totalByMonth = [];
+    const closedByMonth = [];
+
+    fyMonths.forEach(fm => {
+      const monthItems = lineItems.filter(r => {
+        const d = new Date(r.tgl_temuan);
+        return !isNaN(d.getTime()) && (d.getMonth() + 1) === fm.m;
+      });
+      totalByMonth.push(monthItems.length);
+      closedByMonth.push(monthItems.filter(r => r.status === 'Close' || r.status === 'Closed').length);
+    });
+
+    const canvasCtx = document.getElementById(`chart-canvas-${slug}`);
+    if (!canvasCtx) return;
+
+    if (individualLineChartsMap[slug]) {
+      individualLineChartsMap[slug].destroy();
+    }
+
+    individualLineChartsMap[slug] = new Chart(canvasCtx, {
+      type: 'bar',
+      data: {
+        labels: fyMonths.map(fm => fm.name),
+        datasets: [
+          {
+            label: 'Total Temuan',
+            data: totalByMonth,
+            backgroundColor: '#2563eb',
+            borderRadius: 4
+          },
+          {
+            label: 'Closed / Follow Up',
+            data: closedByMonth,
+            backgroundColor: '#10b981',
+            borderRadius: 4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              footer: (items) => {
+                const idx = items[0].dataIndex;
+                const tot = totalByMonth[idx];
+                const cls = closedByMonth[idx];
+                return `Total: ${tot} | Closed: ${cls}`;
+              }
             }
           }
+        },
+        scales: {
+          x: { ticks: { color: textColor, font: { size: 9.5 } }, grid: { display: false } },
+          y: { ticks: { color: textColor, precision: 0, font: { size: 9.5 } }, grid: { color: gridColor }, beginAtZero: true }
         }
-      },
-      scales: {
-        x: { ticks: { color: textColor, font: { family: 'Inter' } }, grid: { color: gridColor } },
-        y: { ticks: { color: textColor, precision: 0 }, grid: { color: gridColor }, beginAtZero: true }
       }
-    }
+    });
   });
 }
 
